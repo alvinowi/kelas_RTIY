@@ -23,7 +23,7 @@ h2{font-size:19px;margin:24px 0 10px}
 .btn.primary{background:var(--acc);border-color:var(--acc);color:#fff}
 :root[data-theme="dark"] .btn.primary{color:#06222b}
 .btn:focus-visible,.card:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
-.actions{display:flex;gap:8px}
+.actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}
 .msg{padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--card);margin:8px 0;font-size:14px}
 .msg.empty{padding:28px 16px;text-align:center;color:var(--mute)}
 .msg.err{border-color:var(--err);color:var(--err)}
@@ -64,21 +64,29 @@ tr:last-child td{border-bottom:0}
 .targetbar select:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 .summary-print{display:none}
-.sumtable th,.sumtable td{white-space:normal}
+.sumtable{table-layout:fixed}
+.sumtable th,.sumtable td{white-space:normal;overflow-wrap:anywhere}
 .sumtable .num{white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}
-.sumtable .pbar{display:flex;align-items:center;gap:8px;min-width:150px}
+.sumtable .pbar{display:flex;align-items:center;gap:6px}
 .sumtable .pbar .bar{flex:1;margin:0}
 .sumfoot{margin-top:12px;font-size:14px}
 @page{margin:14mm}
+@page summary{size:A4 landscape;margin:12mm}
 @media print{
 :root:root:root{--bg:#fff;--card:#fff;--ink:#000;--mute:#444;--line:#999;--tile:#e2e2e2;--ok:#0b6e8a;--fill:#9fd8e6}
 .actions,.cards,.hint,.filterbar,.targetbar{display:none}
 body{background:#fff}
 .bar,.bar i,.tile{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 body[data-print="summary"] .wrap>:not(.summary-print){display:none}
-body[data-print="summary"] .summary-print{display:block}
+body[data-print="summary"] .summary-print{display:block;page:summary}
+.summary-print .tablewrap{overflow:hidden}
+.sumtable{font-size:12px}
+.sumtable th,.sumtable td{padding:6px 7px}
 .tablewrap{overflow:visible}
 tr{break-inside:avoid}
+}
+@media print and (max-width:480px){
+.sumtable .num{white-space:normal}
 }
 </style>
 </head>
@@ -176,6 +184,25 @@ function readRows(buf){
    .filter(r=>String(r.murid).trim());
 }
 
+const todayStr=()=>new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+const xserial=d=>d instanceof Date&&!isNaN(d)?Math.round((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())-Date.UTC(1899,11,30))/86400000):null;
+const dcell=d=>{const n=xserial(d);return n!=null?{t:'n',v:n,z:'dd mmm yyyy'}:(d?String(d):'-')};
+const slug=t=>String(t).replace(/[\\/:*?"<>|]+/g,'').trim().replace(/\s+/g,'-');
+function sheet(rows,widths){
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=widths.map(w=>({wch:w}));
+  return ws;
+}
+async function saveXlsx(wb,filename){
+  const buf=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+  let d=null;
+  try{d=window.claude&&await window.claude.use('downloads')}catch(e){d=null}
+  if(d){await d.save({filename,data:buf});return}
+  const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+}
+
 Vue.createApp({
   data(){return{rows:[],src:'Belum ada file diupload',err:'',sel:null,pick:[],printDate:'',targetSel:30}},
   computed:{
@@ -211,6 +238,53 @@ Vue.createApp({
       if(c.hadir)return this.pick.length?'Hadir pada tanggal terpilih, tidak ada bacaan dalam target.':'Hadir, belum ada bacaan dalam target.';
       return this.pick.length?'Tidak ada setoran pada tanggal terpilih.':'Belum ada setoran.';
     },
+    metaRows(title){
+      return [[title],['Sumber',this.src],['Target',this.tgt.desc],['Filter tanggal',this.pick.length?this.filterLabel:'Semua tanggal'],['Diekspor',todayStr()],[]];
+    },
+    wbSummary(){
+      const t=this.tgt,L=this.res.list;
+      const rows=this.metaRows('Ringkasan progress bacaan '+t.title);
+      rows.push(['Murid','Ayat terbaca','Target (ayat)','Progress (%)','Surat tuntas','Surat dalam target','Surat sebagian','Setoran','Hadir (tanggal)','Setoran terakhir']);
+      L.forEach(x=>rows.push([x.name,x.total,t.total,x.pct,x.tuntas,t.nSeg,x.parsial,x.log.length,x.hadir,
+        x.log.length?dcell(x.last):(x.hadir?'Hadir, tanpa bacaan':(this.pick.length?'Tidak ada setoran':'-'))]));
+      rows.push([]);
+      rows.push(['Jumlah murid',L.length]);
+      rows.push(['Rata-rata progress (%)',this.avgPct]);
+      if(this.pick.length){rows.push(['Murid hadir',this.hadirCount]);rows.push(['Murid setor bacaan',this.activeCount])}
+      const wb=XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb,sheet(rows,[30,14,14,13,13,18,15,10,16,22]),'Ringkasan');
+      return wb;
+    },
+    wbStudent(){
+      const c=this.cur,t=this.tgt;
+      const rows=this.metaRows('Laporan progress bacaan: '+c.name);
+      rows.push(['Ayat terbaca',c.total],['Target (ayat)',t.total],['Progress (%)',c.pct],['Surat tuntas',c.tuntas],['Surat dalam target',t.nSeg],['Surat sebagian',c.parsial],['Setoran',c.log.length],['Tanggal hadir',c.hadir],['Setoran terakhir',c.log.length?dcell(c.last):'-']);
+      if(!c.log.length)rows.push(['Keterangan',this.emptyMsg(c)]);
+      const wb=XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb,sheet(rows,[26,60]),'Ringkasan');
+      if(c.log.length){
+        const r=[['No','Surat','Ayat dalam target','Ayat terbaca','Progress (%)','Status','Bagian ayat']];
+        c.surat.forEach(x=>r.push([x.no,x.name,x.ayat,x.got,x.pct,x.got===x.ayat?'Tuntas':(x.got>0?'Sebagian':'Belum'),x.part?x.seg[0]+'-'+x.seg[1]:'Seluruh surat']));
+        XLSX.utils.book_append_sheet(wb,sheet(r,[6,22,18,13,13,12,16]),'Per Surat');
+      }
+      if(c.riwayat.length){
+        const r=[['Tanggal','Lokasi','Kegiatan','Rentang','Ayat dalam target','Nilai']];
+        c.riwayat.forEach(l=>r.push([dcell(l.tgl),l.lokasi||'-',l.jenis||'-',l.rentang,l.hadir?'-':l.cnt,l.nilai===''||l.nilai==null?'-':l.nilai]));
+        XLSX.utils.book_append_sheet(wb,sheet(r,[14,10,16,48,18,8]),'Riwayat');
+      }
+      return wb;
+    },
+    async exportXlsx(kind){
+      this.err='';
+      try{
+        const k=slug(this.tgt.sel==='all'?'semua-juz':'juz-'+this.tgt.sel)+(this.pick.length?'-filter-tanggal':'');
+        if(kind==='summary')await saveXlsx(this.wbSummary(),'ringkasan-progress-'+k+'.xlsx');
+        else await saveXlsx(this.wbStudent(),'progress-'+slug(this.cur.name)+'-'+k+'.xlsx');
+      }catch(e){
+        if(e&&e.code==='declined')return;
+        this.err='Gagal ekspor Excel: '+((e&&e.message)||e);
+      }
+    },
     toggle(k){this.pick=this.pick.includes(k)?this.pick.filter(x=>x!==k):[...this.pick,k]},
     doPrint(mode){
       this.printDate=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
@@ -233,6 +307,8 @@ Vue.createApp({
       <label class="btn primary">Upload Excel<input type="file" accept=".xlsx,.xls" hidden @change="onFile"></label>
       <button class="btn" :disabled="!cur" @click="doPrint('detail')">Cetak murid ini</button>
       <button class="btn" :disabled="!res.list.length" @click="doPrint('summary')">Cetak ringkasan semua</button>
+      <button class="btn" :disabled="!cur" @click="exportXlsx('detail')" title="Unduh data yang sama dengan Cetak murid ini">Ekspor murid ini</button>
+      <button class="btn" :disabled="!res.list.length" @click="exportXlsx('summary')" title="Unduh data yang sama dengan Cetak ringkasan semua">Ekspor ringkasan semua</button>
     </div>
   </header>
   <p v-if="err" class="msg err">{{err}}</p>
@@ -307,6 +383,7 @@ Vue.createApp({
     <p class="mute">Sumber: {{src}}. Dicetak {{printDate}}. Target {{tgt.desc}}.</p>
     <p class="mute" v-if="pick.length"><b>Tanggal: {{filterLabel}}.</b> Angka dihitung hanya dari bacaan pada tanggal tersebut.</p>
     <div class="tablewrap" style="margin-top:12px"><table class="sumtable">
+      <colgroup><col style="width:21%"><col style="width:12%"><col style="width:18%"><col style="width:9%"><col style="width:9%"><col style="width:8%"><col style="width:7%"><col style="width:16%"></colgroup>
       <thead><tr><th>Murid</th><th class="num">Ayat terbaca</th><th>Progress</th><th class="num">Surat tuntas</th><th class="num">Surat sebagian</th><th class="num">Setoran</th><th class="num">Hadir</th><th>Setoran terakhir</th></tr></thead>
       <tbody><tr v-for="s in res.list" :key="s.name">
         <td><b>{{s.name}}</b></td>
@@ -327,7 +404,7 @@ Vue.createApp({
     <p v-for="w in res.warns" class="msg warn">{{w}}</p>
   </section>
 
-  <p class="hint">Upload file .xlsx dengan sheet log_bacaan_quran, atau seret file ke halaman ini. Target bisa dipilih per juz atau seluruh Al-Qur'an; bacaan di luar target tidak dihitung. Ayat mulai kosong dihitung 1, ayat selesai kosong dihitung ayat terakhir surat. Bacaan ulang tidak menambah persentase. Murid yang belum punya baris log tidak muncul. Kegiatan Kehadiran menandai murid ikut serta tanpa bacaan: dihitung sebagai hadir dan tidak mengubah progress. Filter tanggal hanya menampilkan tanggal yang ada kegiatannya, dan cetak mengikuti filter. File diproses di browser Anda dan tidak dikirim ke server.</p>
+  <p class="hint">Upload file .xlsx dengan sheet log_bacaan_quran, atau seret file ke halaman ini. Target bisa dipilih per juz atau seluruh Al-Qur'an; bacaan di luar target tidak dihitung. Ayat mulai kosong dihitung 1, ayat selesai kosong dihitung ayat terakhir surat. Bacaan ulang tidak menambah persentase. Murid yang belum punya baris log tidak muncul. Kegiatan Kehadiran menandai murid ikut serta tanpa bacaan: dihitung sebagai hadir dan tidak mengubah progress. Filter tanggal hanya menampilkan tanggal yang ada kegiatannya, dan cetak mengikuti filter. Tombol Ekspor mengunduh data yang sama dengan tombol Cetak (target dan filter tanggal ikut). File diproses di browser Anda dan tidak dikirim ke server.</p>
 </div>`
 }).mount('#app');
 window.addEventListener('afterprint',()=>{delete document.body.dataset.print});
