@@ -1,0 +1,325 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Progress Bacaan Al-Qur'an</title>
+<style>
+:root{--bg:#eef3f5;--card:#fff;--ink:#14232d;--mute:#5d6e79;--line:#d5dee3;--acc:#0b6e8a;--fill:#9fd8e6;--tile:#e4ebee;--ok:#0b6e8a;--warn:#a85a00;--err:#b3261e;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1a20;--card:#16252d;--ink:#e6eef2;--mute:#93a6b1;--line:#27404b;--acc:#52c3e0;--fill:#17526a;--tile:#1d3039;--ok:#52c3e0;--warn:#f0a35a;--err:#ff8a80}}
+:root[data-theme="dark"]{--bg:#0f1a20;--card:#16252d;--ink:#e6eef2;--mute:#93a6b1;--line:#27404b;--acc:#52c3e0;--fill:#17526a;--tile:#1d3039;--ok:#52c3e0;--warn:#f0a35a;--err:#ff8a80}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+h1,h2,.big{font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif}
+.wrap{max-width:1000px;margin:0 auto;padding:20px 16px 48px}
+header{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:flex-end;margin-bottom:16px}
+h1{font-size:26px;line-height:1.2;margin:0}
+h2{font-size:19px;margin:24px 0 10px}
+.mute{color:var(--mute);margin:2px 0 0;font-size:13px}
+.btn{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 14px;border-radius:8px;cursor:pointer}
+.btn.primary{background:var(--acc);border-color:var(--acc);color:#fff}
+:root[data-theme="dark"] .btn.primary{color:#06222b}
+.btn:focus-visible,.card:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.actions{display:flex;gap:8px}
+.msg{padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--card);margin:8px 0;font-size:14px}
+.msg.empty{padding:28px 16px;text-align:center;color:var(--mute)}
+.msg.err{border-color:var(--err);color:var(--err)}
+.msg.warn{border-color:var(--warn);color:var(--warn)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.card{text-align:left;font:inherit;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;cursor:pointer}
+.card.on{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc)}
+.card b{font-size:16px}
+.bar{height:8px;background:var(--tile);border-radius:4px;overflow:hidden;margin:8px 0 4px}
+.bar i{display:block;height:100%;background:var(--ok)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+.big{font-size:30px;line-height:1.1}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:6px}
+.tile{border:1px solid var(--line);border-radius:8px;padding:6px 8px;min-height:58px;font-size:12px;line-height:1.3}
+.tile.full{border-color:var(--ok);border-width:2px}
+.tile small{display:block;color:var(--mute)}
+.tile b{font-weight:600}
+.tablewrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{color:var(--mute);font-weight:600}
+tr:last-child td{border-bottom:0}
+.hint{margin-top:18px;font-size:13px;color:var(--mute)}
+.filterbar{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin:0 0 12px}
+.fhead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:5px 10px;border-radius:999px;cursor:pointer}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.chip:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.chip small{color:inherit;opacity:.8}
+.btn.small{padding:4px 10px;font-size:13px}
+.filternote{border-color:var(--acc)}
+:root[data-theme="dark"] .chip.on{color:#06222b}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn.primary,:root:not([data-theme="light"]) .chip.on{color:#06222b}}
+.targetbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:0 0 12px}
+.targetbar select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+.targetbar select:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.summary-print{display:none}
+.sumtable th,.sumtable td{white-space:normal}
+.sumtable .num{white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}
+.sumtable .pbar{display:flex;align-items:center;gap:8px;min-width:150px}
+.sumtable .pbar .bar{flex:1;margin:0}
+.sumfoot{margin-top:12px;font-size:14px}
+@page{margin:14mm}
+@media print{
+:root:root:root{--bg:#fff;--card:#fff;--ink:#000;--mute:#444;--line:#999;--tile:#e2e2e2;--ok:#0b6e8a;--fill:#9fd8e6}
+.actions,.cards,.hint,.filterbar,.targetbar{display:none}
+body{background:#fff}
+.bar,.bar i,.tile{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body[data-print="summary"] .wrap>:not(.summary-print){display:none}
+body[data-print="summary"] .summary-print{display:block}
+.tablewrap{overflow:visible}
+tr{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.prod.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const SU=[["Al-Fatihah",7],["Al-Baqarah",286],["Ali 'Imran",200],["An-Nisa'",176],["Al-Ma'idah",120],["Al-An'am",165],["Al-A'raf",206],["Al-Anfal",75],["At-Taubah",129],["Yunus",109],["Hud",123],["Yusuf",111],["Ar-Ra'd",43],["Ibrahim",52],["Al-Hijr",99],["An-Nahl",128],["Al-Isra'",111],["Al-Kahf",110],["Maryam",98],["Taha",135],["Al-Anbiya'",112],["Al-Hajj",78],["Al-Mu'minun",118],["An-Nur",64],["Al-Furqan",77],["Asy-Syu'ara'",227],["An-Naml",93],["Al-Qasas",88],["Al-'Ankabut",69],["Ar-Rum",60],["Luqman",34],["As-Sajdah",30],["Al-Ahzab",73],["Saba'",54],["Fatir",45],["Yasin",83],["As-Saffat",182],["Sad",88],["Az-Zumar",75],["Ghafir",85],["Fussilat",54],["Asy-Syura",53],["Az-Zukhruf",89],["Ad-Dukhan",59],["Al-Jasiyah",37],["Al-Ahqaf",35],["Muhammad",38],["Al-Fath",29],["Al-Hujurat",18],["Qaf",45],["Az-Zariyat",60],["At-Tur",49],["An-Najm",62],["Al-Qamar",55],["Ar-Rahman",78],["Al-Waqi'ah",96],["Al-Hadid",29],["Al-Mujadilah",22],["Al-Hasyr",24],["Al-Mumtahanah",13],["As-Saff",14],["Al-Jumu'ah",11],["Al-Munafiqun",11],["At-Taghabun",18],["At-Talaq",12],["At-Tahrim",12],["Al-Mulk",30],["Al-Qalam",52],["Al-Haqqah",52],["Al-Ma'arij",44],["Nuh",28],["Al-Jinn",28],["Al-Muzzammil",20],["Al-Muddassir",56],["Al-Qiyamah",40],["Al-Insan",31],["Al-Mursalat",50],["An-Naba'",40],["An-Nazi'at",46],["'Abasa",42],["At-Takwir",29],["Al-Infitar",19],["Al-Mutaffifin",36],["Al-Insyiqaq",25],["Al-Buruj",22],["At-Tariq",17],["Al-A'la",19],["Al-Ghasyiyah",26],["Al-Fajr",30],["Al-Balad",20],["Asy-Syams",15],["Al-Lail",21],["Ad-Duha",11],["Asy-Syarh",8],["At-Tin",8],["Al-'Alaq",19],["Al-Qadr",5],["Al-Bayyinah",8],["Az-Zalzalah",8],["Al-'Adiyat",11],["Al-Qari'ah",11],["At-Takasur",8],["Al-'Asr",3],["Al-Humazah",9],["Al-Fil",5],["Quraysh",4],["Al-Ma'un",7],["Al-Kausar",3],["Al-Kafirun",6],["An-Nasr",3],["Al-Lahab",5],["Al-Ikhlas",4],["Al-Falaq",5],["An-Nas",6]].map(([name,ayat],i)=>({no:i+1,name,ayat}));
+const JUZ_START=[[1, 1], [2, 142], [2, 253], [3, 93], [4, 24], [4, 148], [5, 82], [6, 111], [7, 88], [8, 41], [9, 93], [11, 6], [12, 53], [15, 1], [17, 1], [18, 75], [21, 1], [23, 1], [25, 21], [27, 56], [29, 46], [33, 31], [36, 28], [39, 32], [41, 47], [46, 1], [51, 31], [58, 1], [67, 1], [78, 1]];
+const CUM=[0];SU.forEach(x=>CUM.push(CUM[CUM.length-1]+x.ayat));
+const ALL_AYAT=CUM[114];
+const JUZ_G=JUZ_START.map(([n,a])=>CUM[n-1]+a);
+const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+const MAP={};SU.forEach(x=>MAP[norm(x.name)]=x);
+MAP[norm('Al-Gasyiyah')]=SU[87];MAP[norm('Quraisy')]=SU[105];MAP[norm('At-Tagabun')]=SU[63];
+const label=su=>su.no+'. '+su.name;
+function findSurat(v){
+  const t=String(v==null?'':v).trim();
+  if(/^\d/.test(t)){const n=parseInt(t,10);return n>=1&&n<=114?SU[n-1]:null}
+  return MAP[norm(t)]||null;
+}
+function buildTarget(sel){
+  const gs=sel==='all'?1:JUZ_G[sel-1];
+  const ge=(sel==='all'||sel===30)?ALL_AYAT:JUZ_G[sel]-1;
+  const segs={};let total=0,nSeg=0,first=null,last=null;
+  SU.forEach(x=>{const off=CUM[x.no-1],f=Math.max(1,gs-off),t=Math.min(x.ayat,ge-off);
+    if(f<=t){segs[x.no]=[f,t];total+=t-f+1;nSeg++;if(!first)first=[x,f];last=[x,t]}});
+  const name=sel==='all'?"Seluruh Al-Qur'an":'Juz '+sel;
+  const desc=name+': '+label(first[0])+' ayat '+first[1]+' sampai '+label(last[0])+' ayat '+last[1]+', total '+total+' ayat';
+  return {sel,name,title:sel==='all'?name:"Al-Qur'an "+name,desc,segs,total,nSeg};
+}
+const num=v=>(v===''||v==null||isNaN(+v))?null:+v;
+
+function merge(iv){iv.sort((a,b)=>a[0]-b[0]);const o=[];for(const [f,t] of iv){const l=o[o.length-1];if(l&&f<=l[1]+1)l[1]=Math.max(l[1],t);else o.push([f,t]);}return o}
+
+function analyze(rows,names,tgt){
+  const st={},warns=[];
+  (names||[]).forEach(n=>{st[n]={name:n,iv:{},log:[]}});
+  rows.forEach((r,i)=>{
+    const nm=String(r.murid||'').trim(); if(!nm)return;
+    const s=st[nm]||(st[nm]={name:nm,iv:{},log:[]});
+    const a=findSurat(r.sm),b=findSurat(r.ss),ln=r.ln||i+2;
+    if(!a||!b){warns.push('Baris '+ln+' ('+nm+'): surat "'+(!a?r.sm:r.ss)+'" tidak dikenali, baris dilewati.');return}
+    const am=num(r.am),ae=num(r.ae);
+    let cnt=0;
+    for(let n=Math.min(a.no,b.no);n<=Math.max(a.no,b.no);n++){
+      const su=SU[n-1];let from=1,to=su.ayat;
+      if(a.no===b.no){from=am||1;to=ae||su.ayat}
+      else{if(n===a.no)from=am||1;if(n===b.no)to=ae||su.ayat}
+      if(to>su.ayat){warns.push('Baris '+ln+' ('+nm+'): ayat '+to+' melebihi jumlah ayat '+su.name+' ('+su.ayat+'), dipotong.');to=su.ayat}
+      if(from>to){warns.push('Baris '+ln+' ('+nm+'): ayat mulai '+from+' lebih besar dari ayat selesai di '+su.name+', dilewati.');continue}
+      const sg=tgt.segs[n];if(!sg)continue;
+      const f=Math.max(from,sg[0]),t=Math.min(to,sg[1]);
+      if(f>t)continue;
+      (s.iv[n]=s.iv[n]||[]).push([f,t]);cnt+=t-f+1;
+    }
+    if(!cnt){warns.push('Baris '+ln+' ('+nm+'): bacaan di luar target ('+tgt.name+'), tidak dihitung.');return}
+    s.log.push({tgl:r.tgl,lokasi:r.lokasi,jenis:r.jenis,nilai:r.nilai,cnt,
+      rentang:label(a)+(am?' : '+am:'')+' \u2192 '+label(b)+(ae?' : '+ae:'')});
+  });
+  const list=Object.values(st).map(s=>{
+    let total=0,tuntas=0,parsial=0;
+    const surat=SU.filter(x=>tgt.segs[x.no]).map(x=>{
+      const sg=tgt.segs[x.no],len=sg[1]-sg[0]+1;
+      const got=merge(s.iv[x.no]||[]).reduce((y,[f,t])=>y+t-f+1,0);
+      total+=got;if(got===len)tuntas++;else if(got>0)parsial++;
+      return {no:x.no,name:x.name,ayat:len,seg:sg,part:len!==x.ayat,got,pct:Math.round(got/len*100)};
+    });
+    const dt=x=>x.tgl instanceof Date?x.tgl.getTime():0;
+    s.log.sort((x,y)=>dt(y)-dt(x));
+    return {name:s.name,surat,total,tuntas,parsial,pct:Math.round(total/tgt.total*1000)/10,log:s.log,last:s.log[0]&&s.log[0].tgl};
+  }).sort((x,y)=>x.name.localeCompare(y.name));
+  return {list,warns};
+}
+
+const dkey=d=>d instanceof Date&&!isNaN(d)?d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'):null;
+function toDate(v){
+  if(typeof v==='number'&&isFinite(v)){const c=XLSX.SSF.parse_date_code(v);return c?new Date(c.y,c.m-1,c.d):v}
+  const t=String(v==null?'':v).trim();
+  let m=t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);if(m)return new Date(+m[1],m[2]-1,+m[3]);
+  m=t.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);if(m)return new Date(+m[3],m[2]-1,+m[1]);
+  return t;
+}
+function readRows(buf){
+  const wb=XLSX.read(buf,{type:'array'});
+  const ws=wb.Sheets['log_bacaan_quran'];
+  if(!ws)throw new Error('Sheet "log_bacaan_quran" tidak ditemukan. Sheet yang ada: '+wb.SheetNames.join(', ')+'.');
+  const g=(o,k)=>{const key=Object.keys(o).find(x=>x.trim().toLowerCase()===k);return key?o[key]:''};
+  return XLSX.utils.sheet_to_json(ws,{defval:''}).map((o,i)=>({ln:i+2,tgl:toDate(g(o,'tgl')),murid:g(o,'murid'),lokasi:g(o,'lokasi'),jenis:g(o,'jenis kegiatan'),sm:g(o,'surat mulai'),am:g(o,'ayat mulai'),ss:g(o,'surat selesai'),ae:g(o,'ayat selesai'),nilai:g(o,'nilai')}))
+   .filter(r=>String(r.murid).trim());
+}
+
+Vue.createApp({
+  data(){return{rows:[],src:'Belum ada file diupload',err:'',sel:null,pick:[],printDate:'',targetSel:30}},
+  computed:{
+    allNames(){return [...new Set(this.rows.map(r=>String(r.murid||'').trim()).filter(Boolean))]},
+    dateOpts(){
+      const m=new Map();
+      this.rows.forEach(r=>{const k=dkey(r.tgl);if(!k)return;const o=m.get(k)||{key:k,date:r.tgl,names:new Set()};o.names.add(String(r.murid).trim());m.set(k,o)});
+      return [...m.values()].sort((a,b)=>a.key<b.key?-1:1).map(o=>({key:o.key,label:this.fd(o.date),n:o.names.size}));
+    },
+    filterLabel(){return this.dateOpts.filter(o=>this.pick.includes(o.key)).map(o=>o.label).join(', ')},
+    noDateCount(){return this.rows.filter(r=>!dkey(r.tgl)).length},
+    shownRows(){return this.pick.length?this.rows.filter(r=>this.pick.includes(dkey(r.tgl))):this.rows},
+    activeCount(){return this.res.list.filter(x=>x.log.length).length},
+    tgt(){return buildTarget(this.targetSel)},
+    res(){return analyze(this.shownRows,this.allNames,this.tgt)},
+    avgPct(){const l=this.res.list;return l.length?Math.round(l.reduce((a,x)=>a+x.pct,0)/l.length*10)/10:0},
+    cur(){const l=this.res.list;return l.find(x=>x.name===this.sel)||l[0]||null}
+  },
+  methods:{
+    label,
+    fd(d){return d instanceof Date&&!isNaN(d)?d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}):String(d||'-')},
+    async load(file){
+      this.err='';
+      if(!file)return;
+      try{
+        const rows=readRows(await file.arrayBuffer());
+        if(!rows.length)throw new Error('Tidak ada baris dengan nama murid di sheet log_bacaan_quran.');
+        this.rows=rows;this.src=file.name;this.sel=null;this.pick=[];
+      }catch(e){this.err='Gagal membaca file: '+e.message}
+    },
+    toggle(k){this.pick=this.pick.includes(k)?this.pick.filter(x=>x!==k):[...this.pick,k]},
+    doPrint(mode){
+      this.printDate=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+      document.body.dataset.print=mode;
+      this.$nextTick(()=>window.print());
+    },
+    onFile(e){this.load(e.target.files[0]);e.target.value=''},
+    onDrop(e){this.load(e.dataTransfer.files[0])},
+    tileBg(t){return 'background:linear-gradient(to top,var(--fill) '+t.pct+'%,var(--tile) '+t.pct+'%)'}
+  },
+  template:`
+<div class="wrap" @dragover.prevent @drop.prevent="onDrop">
+  <header>
+    <div>
+      <h1>Progress bacaan {{tgt.title}}</h1>
+      <p class="mute">Sumber: {{src}}</p>
+      <p class="mute">Target {{tgt.desc}}</p>
+    </div>
+    <div class="actions">
+      <label class="btn primary">Upload Excel<input type="file" accept=".xlsx,.xls" hidden @change="onFile"></label>
+      <button class="btn" :disabled="!cur" @click="doPrint('detail')">Cetak murid ini</button>
+      <button class="btn" :disabled="!res.list.length" @click="doPrint('summary')">Cetak ringkasan semua</button>
+    </div>
+  </header>
+  <p v-if="err" class="msg err">{{err}}</p>
+
+  <div class="targetbar">
+    <label for="tsel"><b>Target progress</b></label>
+    <select id="tsel" v-model="targetSel">
+      <option v-for="j in 30" :key="j" :value="j">Juz {{j}}</option>
+      <option value="all">Semua juz (1 kitab, 6.236 ayat)</option>
+    </select>
+    <span class="mute">{{tgt.desc}}</span>
+  </div>
+
+  <div v-if="!rows.length" class="msg empty">
+    <b>Belum ada data.</b> Klik Upload Excel atau seret file .xlsx ke halaman ini. Laporan per murid akan muncul setelah file dibaca.
+  </div>
+
+  <div class="filterbar" v-if="dateOpts.length">
+    <div class="fhead"><b>Filter tanggal</b><button class="btn small" v-if="pick.length" @click="pick=[]">Hapus filter</button></div>
+    <div class="chips">
+      <button v-for="o in dateOpts" :key="o.key" class="chip" :class="{on:pick.includes(o.key)}" :aria-pressed="pick.includes(o.key)" @click="toggle(o.key)">{{o.label}} <small>({{o.n}} murid)</small></button>
+    </div>
+    <p class="mute" v-if="!pick.length">Pilih satu atau beberapa tanggal untuk melihat kegiatan pada tanggal itu. Tanpa pilihan, semua tanggal dihitung.</p>
+  </div>
+  <p class="msg filternote" v-if="pick.length">Menampilkan bacaan pada tanggal: <b>{{filterLabel}}</b>. Progress dihitung hanya dari bacaan pada tanggal tersebut.<span v-if="noDateCount" style="margin-left:.35em">{{noDateCount}} baris tanpa tanggal valid tidak ikut dihitung.</span></p>
+
+  <div class="cards" v-if="res.list.length">
+    <button v-for="s in res.list" :key="s.name" class="card" :class="{on:cur&&s.name===cur.name}" @click="sel=s.name">
+      <b>{{s.name}}</b>
+      <div class="bar"><i :style="{width:s.pct+'%'}"></i></div>
+      <span class="mute" v-if="pick.length&&!s.log.length">Tidak ada setoran</span>
+      <span class="mute" v-else>{{s.total}} dari {{tgt.total}} ayat, {{s.pct}}%</span>
+    </button>
+  </div>
+
+  <section v-if="cur">
+    <h2>{{cur.name}}</h2>
+    <div class="stats">
+      <div class="stat"><div class="big">{{cur.pct}}%</div><div class="mute">{{cur.total}} dari {{tgt.total}} ayat</div></div>
+      <div class="stat"><div class="big">{{cur.tuntas}}</div><div class="mute">surat tuntas dari {{tgt.nSeg}}</div></div>
+      <div class="stat"><div class="big">{{cur.parsial}}</div><div class="mute">surat baru sebagian</div></div>
+      <div class="stat"><div class="big">{{cur.log.length}}</div><div class="mute">setoran, terakhir {{fd(cur.last)}}</div></div>
+    </div>
+    <div class="bar"><i :style="{width:cur.pct+'%'}"></i></div>
+
+    <p v-if="!cur.log.length" class="msg empty">Tidak ada setoran pada tanggal terpilih.</p>
+    <template v-else>
+    <h2>Per surat</h2>
+    <div class="grid">
+      <div v-for="t in cur.surat" :key="t.no" class="tile" :class="{full:t.got===t.ayat}" :style="tileBg(t)">
+        <b>{{label(t)}}</b>
+        <small>{{t.got}}/{{t.ayat}} ayat{{t.got===t.ayat?' \u2713':''}}</small>
+        <small v-if="t.part">ayat {{t.seg[0]}}-{{t.seg[1]}}</small>
+      </div>
+    </div>
+
+    <h2>Riwayat setoran</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Tanggal</th><th>Lokasi</th><th>Kegiatan</th><th>Rentang</th><th>Ayat dalam target</th><th>Nilai</th></tr></thead>
+      <tbody><tr v-for="(l,i) in cur.log" :key="i">
+        <td>{{fd(l.tgl)}}</td><td>{{l.lokasi}}</td><td>{{l.jenis}}</td><td>{{l.rentang}}</td><td>{{l.cnt}}</td><td>{{l.nilai===''?'-':l.nilai}}</td>
+      </tr></tbody>
+    </table></div>
+    </template>
+  </section>
+
+  <section class="summary-print" v-if="res.list.length">
+    <h1>Ringkasan progress bacaan {{tgt.title}}</h1>
+    <p class="mute">Sumber: {{src}}. Dicetak {{printDate}}. Target {{tgt.desc}}.</p>
+    <p class="mute" v-if="pick.length"><b>Tanggal: {{filterLabel}}.</b> Angka dihitung hanya dari bacaan pada tanggal tersebut.</p>
+    <div class="tablewrap" style="margin-top:12px"><table class="sumtable">
+      <thead><tr><th>Murid</th><th class="num">Ayat terbaca</th><th>Progress</th><th class="num">Surat tuntas</th><th class="num">Surat sebagian</th><th class="num">Setoran</th><th>Setoran terakhir</th></tr></thead>
+      <tbody><tr v-for="s in res.list" :key="s.name">
+        <td><b>{{s.name}}</b></td>
+        <td class="num">{{s.total}} / {{tgt.total}}</td>
+        <td><div class="pbar"><div class="bar"><i :style="{width:s.pct+'%'}"></i></div><span>{{s.pct}}%</span></div></td>
+        <td class="num">{{s.tuntas}} / {{tgt.nSeg}}</td>
+        <td class="num">{{s.parsial}}</td>
+        <td class="num">{{s.log.length}}</td>
+        <td>{{s.log.length?fd(s.last):(pick.length?'Tidak ada setoran':'-')}}</td>
+      </tr></tbody>
+    </table></div>
+    <p class="sumfoot">{{res.list.length}} murid, rata-rata progress {{avgPct}}%.<span v-if="pick.length" style="margin-left:.35em">{{activeCount}} murid ada setoran pada tanggal terpilih.</span></p>
+  </section>
+
+  <section v-if="res.warns.length">
+    <h2>Catatan data</h2>
+    <p v-for="w in res.warns" class="msg warn">{{w}}</p>
+  </section>
+
+  <p class="hint">Upload file .xlsx dengan sheet log_bacaan_quran, atau seret file ke halaman ini. Target bisa dipilih per juz atau seluruh Al-Qur'an; bacaan di luar target tidak dihitung. Ayat mulai kosong dihitung 1, ayat selesai kosong dihitung ayat terakhir surat. Bacaan ulang tidak menambah persentase. Murid yang belum punya baris log tidak muncul. Filter tanggal hanya menampilkan tanggal yang ada kegiatannya, dan cetak mengikuti filter. File diproses di browser Anda dan tidak dikirim ke server.</p>
+</div>`
+}).mount('#app');
+window.addEventListener('afterprint',()=>{delete document.body.dataset.print});
+</script>
+</body>
+</html>
+
+</body></html>
