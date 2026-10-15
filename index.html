@@ -117,10 +117,13 @@ function merge(iv){iv.sort((a,b)=>a[0]-b[0]);const o=[];for(const [f,t] of iv){c
 
 function analyze(rows,names,tgt){
   const st={},warns=[];
-  (names||[]).forEach(n=>{st[n]={name:n,iv:{},log:[]}});
+  const mk=n=>({name:n,iv:{},log:[],att:[],dates:new Set()});
+  (names||[]).forEach(n=>{st[n]=mk(n)});
   rows.forEach((r,i)=>{
     const nm=String(r.murid||'').trim(); if(!nm)return;
-    const s=st[nm]||(st[nm]={name:nm,iv:{},log:[]});
+    const s=st[nm]||(st[nm]=mk(nm));
+    const dk=dkey(r.tgl);if(dk)s.dates.add(dk);
+    if(/hadir/i.test(String(r.jenis||''))){s.att.push({tgl:r.tgl,lokasi:r.lokasi,jenis:r.jenis,nilai:r.nilai,cnt:0,hadir:true,rentang:'Hadir (tanpa bacaan)'});return}
     const a=findSurat(r.sm),b=findSurat(r.ss),ln=r.ln||i+2;
     if(!a||!b){warns.push('Baris '+ln+' ('+nm+'): surat "'+(!a?r.sm:r.ss)+'" tidak dikenali, baris dilewati.');return}
     const am=num(r.am),ae=num(r.ae);
@@ -150,7 +153,8 @@ function analyze(rows,names,tgt){
     });
     const dt=x=>x.tgl instanceof Date?x.tgl.getTime():0;
     s.log.sort((x,y)=>dt(y)-dt(x));
-    return {name:s.name,surat,total,tuntas,parsial,pct:Math.round(total/tgt.total*1000)/10,log:s.log,last:s.log[0]&&s.log[0].tgl};
+    const riwayat=[...s.log,...s.att].sort((x,y)=>dt(y)-dt(x));
+    return {name:s.name,surat,total,tuntas,parsial,pct:Math.round(total/tgt.total*1000)/10,log:s.log,riwayat,hadir:s.dates.size,last:s.log[0]&&s.log[0].tgl};
   }).sort((x,y)=>x.name.localeCompare(y.name));
   return {list,warns};
 }
@@ -184,6 +188,7 @@ Vue.createApp({
     filterLabel(){return this.dateOpts.filter(o=>this.pick.includes(o.key)).map(o=>o.label).join(', ')},
     noDateCount(){return this.rows.filter(r=>!dkey(r.tgl)).length},
     shownRows(){return this.pick.length?this.rows.filter(r=>this.pick.includes(dkey(r.tgl))):this.rows},
+    hadirCount(){return this.res.list.filter(x=>x.hadir).length},
     activeCount(){return this.res.list.filter(x=>x.log.length).length},
     tgt(){return buildTarget(this.targetSel)},
     res(){return analyze(this.shownRows,this.allNames,this.tgt)},
@@ -201,6 +206,10 @@ Vue.createApp({
         if(!rows.length)throw new Error('Tidak ada baris dengan nama murid di sheet log_bacaan_quran.');
         this.rows=rows;this.src=file.name;this.sel=null;this.pick=[];
       }catch(e){this.err='Gagal membaca file: '+e.message}
+    },
+    emptyMsg(c){
+      if(c.hadir)return this.pick.length?'Hadir pada tanggal terpilih, tidak ada bacaan dalam target.':'Hadir, belum ada bacaan dalam target.';
+      return this.pick.length?'Tidak ada setoran pada tanggal terpilih.':'Belum ada setoran.';
     },
     toggle(k){this.pick=this.pick.includes(k)?this.pick.filter(x=>x!==k):[...this.pick,k]},
     doPrint(mode){
@@ -254,7 +263,7 @@ Vue.createApp({
     <button v-for="s in res.list" :key="s.name" class="card" :class="{on:cur&&s.name===cur.name}" @click="sel=s.name">
       <b>{{s.name}}</b>
       <div class="bar"><i :style="{width:s.pct+'%'}"></i></div>
-      <span class="mute" v-if="pick.length&&!s.log.length">Tidak ada setoran</span>
+      <span class="mute" v-if="!s.log.length">{{s.hadir?'Hadir, tanpa bacaan':'Tidak ada setoran'}}</span>
       <span class="mute" v-else>{{s.total}} dari {{tgt.total}} ayat, {{s.pct}}%</span>
     </button>
   </div>
@@ -266,11 +275,12 @@ Vue.createApp({
       <div class="stat"><div class="big">{{cur.tuntas}}</div><div class="mute">surat tuntas dari {{tgt.nSeg}}</div></div>
       <div class="stat"><div class="big">{{cur.parsial}}</div><div class="mute">surat baru sebagian</div></div>
       <div class="stat"><div class="big">{{cur.log.length}}</div><div class="mute">setoran, terakhir {{fd(cur.last)}}</div></div>
+      <div class="stat"><div class="big">{{cur.hadir}}</div><div class="mute">tanggal hadir</div></div>
     </div>
     <div class="bar"><i :style="{width:cur.pct+'%'}"></i></div>
 
-    <p v-if="!cur.log.length" class="msg empty">Tidak ada setoran pada tanggal terpilih.</p>
-    <template v-else>
+    <p v-if="!cur.log.length" class="msg empty">{{emptyMsg(cur)}}</p>
+    <template v-if="cur.log.length">
     <h2>Per surat</h2>
     <div class="grid">
       <div v-for="t in cur.surat" :key="t.no" class="tile" :class="{full:t.got===t.ayat}" :style="tileBg(t)">
@@ -280,11 +290,13 @@ Vue.createApp({
       </div>
     </div>
 
-    <h2>Riwayat setoran</h2>
+    </template>
+    <template v-if="cur.riwayat.length">
+    <h2>Riwayat kegiatan</h2>
     <div class="tablewrap"><table>
       <thead><tr><th>Tanggal</th><th>Lokasi</th><th>Kegiatan</th><th>Rentang</th><th>Ayat dalam target</th><th>Nilai</th></tr></thead>
-      <tbody><tr v-for="(l,i) in cur.log" :key="i">
-        <td>{{fd(l.tgl)}}</td><td>{{l.lokasi}}</td><td>{{l.jenis}}</td><td>{{l.rentang}}</td><td>{{l.cnt}}</td><td>{{l.nilai===''?'-':l.nilai}}</td>
+      <tbody><tr v-for="(l,i) in cur.riwayat" :key="i">
+        <td>{{fd(l.tgl)}}</td><td>{{l.lokasi}}</td><td>{{l.jenis}}</td><td>{{l.rentang}}</td><td>{{l.hadir?'-':l.cnt}}</td><td>{{l.nilai===''?'-':l.nilai}}</td>
       </tr></tbody>
     </table></div>
     </template>
@@ -295,7 +307,7 @@ Vue.createApp({
     <p class="mute">Sumber: {{src}}. Dicetak {{printDate}}. Target {{tgt.desc}}.</p>
     <p class="mute" v-if="pick.length"><b>Tanggal: {{filterLabel}}.</b> Angka dihitung hanya dari bacaan pada tanggal tersebut.</p>
     <div class="tablewrap" style="margin-top:12px"><table class="sumtable">
-      <thead><tr><th>Murid</th><th class="num">Ayat terbaca</th><th>Progress</th><th class="num">Surat tuntas</th><th class="num">Surat sebagian</th><th class="num">Setoran</th><th>Setoran terakhir</th></tr></thead>
+      <thead><tr><th>Murid</th><th class="num">Ayat terbaca</th><th>Progress</th><th class="num">Surat tuntas</th><th class="num">Surat sebagian</th><th class="num">Setoran</th><th class="num">Hadir</th><th>Setoran terakhir</th></tr></thead>
       <tbody><tr v-for="s in res.list" :key="s.name">
         <td><b>{{s.name}}</b></td>
         <td class="num">{{s.total}} / {{tgt.total}}</td>
@@ -303,10 +315,11 @@ Vue.createApp({
         <td class="num">{{s.tuntas}} / {{tgt.nSeg}}</td>
         <td class="num">{{s.parsial}}</td>
         <td class="num">{{s.log.length}}</td>
-        <td>{{s.log.length?fd(s.last):(pick.length?'Tidak ada setoran':'-')}}</td>
+        <td class="num">{{s.hadir}}</td>
+        <td>{{s.log.length?fd(s.last):(s.hadir?'Hadir, tanpa bacaan':(pick.length?'Tidak ada setoran':'-'))}}</td>
       </tr></tbody>
     </table></div>
-    <p class="sumfoot">{{res.list.length}} murid, rata-rata progress {{avgPct}}%.<span v-if="pick.length" style="margin-left:.35em">{{activeCount}} murid ada setoran pada tanggal terpilih.</span></p>
+    <p class="sumfoot">{{res.list.length}} murid, rata-rata progress {{avgPct}}%.<span v-if="pick.length" style="margin-left:.35em">{{hadirCount}} murid hadir, {{activeCount}} di antaranya setor bacaan pada tanggal terpilih.</span></p>
   </section>
 
   <section v-if="res.warns.length">
@@ -314,7 +327,7 @@ Vue.createApp({
     <p v-for="w in res.warns" class="msg warn">{{w}}</p>
   </section>
 
-  <p class="hint">Upload file .xlsx dengan sheet log_bacaan_quran, atau seret file ke halaman ini. Target bisa dipilih per juz atau seluruh Al-Qur'an; bacaan di luar target tidak dihitung. Ayat mulai kosong dihitung 1, ayat selesai kosong dihitung ayat terakhir surat. Bacaan ulang tidak menambah persentase. Murid yang belum punya baris log tidak muncul. Filter tanggal hanya menampilkan tanggal yang ada kegiatannya, dan cetak mengikuti filter. File diproses di browser Anda dan tidak dikirim ke server.</p>
+  <p class="hint">Upload file .xlsx dengan sheet log_bacaan_quran, atau seret file ke halaman ini. Target bisa dipilih per juz atau seluruh Al-Qur'an; bacaan di luar target tidak dihitung. Ayat mulai kosong dihitung 1, ayat selesai kosong dihitung ayat terakhir surat. Bacaan ulang tidak menambah persentase. Murid yang belum punya baris log tidak muncul. Kegiatan Kehadiran menandai murid ikut serta tanpa bacaan: dihitung sebagai hadir dan tidak mengubah progress. Filter tanggal hanya menampilkan tanggal yang ada kegiatannya, dan cetak mengikuti filter. File diproses di browser Anda dan tidak dikirim ke server.</p>
 </div>`
 }).mount('#app');
 window.addEventListener('afterprint',()=>{delete document.body.dataset.print});
