@@ -463,17 +463,43 @@ Vue.createApp({
       return 'Tidak ada foto untuk tanggal dan kelas ini.';
     },
     dailyPages(){
+      const real=l=>{l=String(l==null?'':l).trim();return l&&l!=='-'?l:''};
+      const mn=r=>String(r.murid||'').trim();
+      // lokasi yang biasa dipakai tiap murid (per Ustadz), dari baris yang punya lokasi
+      const cntLok=new Map(),memberSet=new Map();
+      this.bRows.forEach(r=>{const l=real(r.lokasi),n=mn(r);if(!l||!n)return;
+        const uk=normKelas(r.ustadz),k=uk+'|'+n+'|'+normKelas(l);cntLok.set(k,(cntLok.get(k)||0)+1);
+        const mk=uk+'|'+normKelas(l);(memberSet.get(mk)||memberSet.set(mk,new Set()).get(mk)).add(n)});
+      const usual=new Map();
+      cntLok.forEach((c,k)=>{const [uk,n,l]=k.split('|'),kk=uk+'|'+n,o=usual.get(kk);if(!o||c>o.c)usual.set(kk,{c,l})});
       const groups=new Map();
       this.shownRows.forEach(r=>{
-        const dk=dkey(r.tgl);if(!dk||!String(r.murid||'').trim())return;
-        const k=dk+'|'+normKelas(r.ustadz);
-        let g=groups.get(k);if(!g){g={key:k,dk,date:r.tgl,kelas:r.ustadz||'',rows:[]};groups.set(k,g)}
+        const dk=dkey(r.tgl);if(!dk||!mn(r))return;
+        const uk=normKelas(r.ustadz);let lok=real(r.lokasi),isReal=!!lok;
+        if(!lok){const u=usual.get(uk+'|'+mn(r));if(u)lok=u.l}
+        const ln=normKelas(lok),k=dk+'|'+uk+'|'+ln;
+        let g=groups.get(k);if(!g){g={key:k,dk,uk,ln,date:r.tgl,kelas:r.ustadz||'',lokasi:'',real:false,rows:[]};groups.set(k,g)}
+        if(isReal&&!g.lokasi)g.lokasi=real(r.lokasi);
+        if(isReal)g.real=true;
         g.rows.push(r);
       });
-      return [...groups.values()].sort((a,b)=>a.dk<b.dk?-1:a.dk>b.dk?1:(a.key<b.key?-1:1)).map(g=>{
-        const kn=normKelas(g.kelas);
-        const members=kn?[...new Set(this.bRows.filter(r=>normKelas(r.ustadz)===kn).map(r=>String(r.murid||'').trim()).filter(Boolean))]:this.allNames;
-        const names=[...new Set([...g.rows.map(r=>String(r.murid).trim()),...members])].sort((a,b)=>a.localeCompare(b));
+      // baris tanpa lokasi (mis. Sakit) yang lokasinya hanya terduga: gabungkan ke sesi nyata pada hari/Ustadz yang sama
+      [...groups.values()].forEach(g=>{
+        if(g.real)return;
+        const t=[...groups.values()].filter(x=>x!==g&&x.dk===g.dk&&x.uk===g.uk&&x.real).sort((a,b)=>a.ln<b.ln?-1:1)[0];
+        if(t){t.rows.push(...g.rows);groups.delete(g.key)}
+      });
+      const byDay=new Map();
+      groups.forEach(g=>{const k=g.dk+'|'+g.uk;(byDay.get(k)||byDay.set(k,[]).get(k)).push(g)});
+      const zoomOn=new Set();
+      groups.forEach(g=>{if(/zoom/i.test(g.lokasi))zoomOn.add(g.dk+'|'+g.uk)});
+      return [...groups.values()].sort((a,b)=>a.dk<b.dk?-1:a.dk>b.dk?1:(a.uk<b.uk?-1:a.uk>b.uk?1:(a.ln<b.ln?-1:1))).map(g=>{
+        const kn=g.uk;
+        const base=(kn||g.ln)?[...(memberSet.get(kn+'|'+g.ln)||[])]:this.allNames;
+        const elsewhere=new Set();
+        (byDay.get(g.dk+'|'+g.uk)||[]).forEach(o=>{if(o!==g)o.rows.forEach(r=>elsewhere.add(mn(r)))});
+        const members=base.filter(n=>!elsewhere.has(n));
+        const names=[...new Set([...g.rows.map(r=>mn(r)),...members])].sort((a,b)=>a.localeCompare(b));
         const items=[];let no=0;
         names.forEach(n=>{
           const rs=g.rows.filter(r=>String(r.murid).trim()===n);
@@ -498,7 +524,8 @@ Vue.createApp({
           else if(rs.some(r=>absKind(r.jenis)==='Sakit'))cnt.sakit++;
           else cnt.kabar++;});
         const sumLine=cnt.baca===names.length?'':names.length+' murid: '+[cnt.baca&&cnt.baca+' membaca',cnt.hadir&&cnt.hadir+' hadir tanpa bacaan',cnt.sakit&&cnt.sakit+' sakit',cnt.kabar&&cnt.kabar+' tidak ada kabar',cnt.kosong&&cnt.kosong+' tanpa data'].filter(Boolean).join(', ')+'.';
-        return {key:g.key,kelas:g.kelas,dateLong:longDate(g.date),items,sumLine,cum,photos:this.photoMap[g.dk+'|'+kn]||[]};
+        const dayZoom=zoomOn.has(g.dk+'|'+g.uk),isZoom=/zoom/i.test(g.lokasi);
+        return {key:g.key,kelas:g.kelas,lokasi:g.lokasi,dateLong:longDate(g.date),items,sumLine,cum,showPhotos:!dayZoom||isZoom,photos:(!dayZoom||isZoom)?(this.photoMap[g.dk+'|'+kn]||[]):[]};
       });
     },
     bRows(){return this.batchPick.length?this.rows.filter(r=>this.batchPick.includes(r.batch||'')):this.rows},
@@ -742,7 +769,7 @@ Vue.createApp({
       pages.forEach((pg,i)=>{
         ch.push(new d.Paragraph({pageBreakBefore:i>0,alignment:d.AlignmentType.CENTER,spacing:{after:100},border:{bottom:{style:d.BorderStyle.SINGLE,size:8,color:'BFC9CF',space:4}},children:[new d.ImageRun({type:'png',data:logo.data,transformation:{width:lw,height:lh}})]}));
         ch.push(wP('Laporan harian'+(pg.kelas?' kelas '+pg.kelas:''),{size:34,bold:true,before:120,after:40,center:true}));
-        ch.push(wP(pg.dateLong,{size:26,bold:true,after:40,center:true}));
+        ch.push(wP(pg.dateLong+(pg.lokasi?' \u00b7 Lokasi: '+pg.lokasi:''),{size:26,bold:true,after:40,center:true}));
         if(pg.sumLine)ch.push(wP(pg.sumLine,{size:19,color:WMUTE,after:120,center:true}));
         ch.push(wTable([500,2100,1200,900,3106,1300,1100],['No','Murid','Kegiatan','Lokasi','Rentang bacaan','Jumlah ayat','Nilai'],
           pg.items.map(e=>({cells:[e.no,e.murid,e.jenis,e.lokasi,e.rentang,e.ayat,e.nilai],muted:e.none})),{right:[5,6],bold:[1]}));
@@ -750,6 +777,7 @@ Vue.createApp({
         ch.push(wP('Dihitung dari awal data sampai '+pg.dateLong+' (semua tanggal, tidak terpengaruh filter tanggal). Target '+this.tgt.desc+'.',{color:WMUTE,size:18,after:80,keepNext:true}));
         ch.push(wTable([3300,2000,1700,1600,1606],['Murid','Ayat terbaca','Progress','Surat tuntas','Surat sebagian'],
           pg.cum.map(x=>[x.name,x.total+' / '+this.tgt.total,x.pct+'%',x.tuntas+' / '+this.tgt.nSeg,x.parsial]),{right:[1,2,3,4],bold:[0]}));
+        if(!pg.showPhotos)return;
         ch.push(wP('Foto Zoom',{size:26,bold:true,before:240,after:80,keepNext:true}));
         const ph=pg.photos;
         if(!ph.length)ch.push(wP(this.photoNote,{color:WMUTE}));
@@ -1018,7 +1046,7 @@ Vue.createApp({
     <article class="day" v-for="pg in dailyPages" :key="pg.key">
       <div class="dayhead"><img :src="logoSrc" @error="logoSrc=logoData" alt="Yasmanti Foundation"></div>
       <h1>Laporan harian{{pg.kelas?' kelas '+pg.kelas:''}}</h1>
-      <p class="daydate"><b>{{pg.dateLong}}</b></p>
+      <p class="daydate"><b>{{pg.dateLong}}</b><b v-if="pg.lokasi"> &middot; Lokasi: {{pg.lokasi}}</b></p>
       <p class="daysum" v-if="pg.sumLine">{{pg.sumLine}}</p>
       <div class="tablewrap"><table class="daytable">
         <colgroup><col style="width:5%"><col style="width:22%"><col style="width:14%"><col style="width:9%"><col style="width:30%"><col style="width:11%"><col style="width:9%"></colgroup>
@@ -1038,6 +1066,7 @@ Vue.createApp({
           <td class="num">{{c.tuntas}} / {{tgt.nSeg}}</td><td class="num">{{c.parsial}}</td>
         </tr></tbody>
       </table></div>
+      <template v-if="pg.showPhotos">
       <h2>Foto Zoom</h2>
       <div class="photos" :class="{one:pg.photos.length===1}" v-if="pg.photos.length">
         <figure v-for="(u,i) in pg.photos" :key="u">
@@ -1047,6 +1076,7 @@ Vue.createApp({
         </figure>
       </div>
       <p v-else class="mute">{{photoNote}}</p>
+      </template>
     </article>
   </section>
 
