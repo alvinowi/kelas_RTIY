@@ -273,7 +273,7 @@ function readRows(buf){
   const ws=wb.Sheets['log_bacaan_quran'];
   if(!ws)throw new Error('Sheet "log_bacaan_quran" tidak ditemukan. Sheet yang ada: '+wb.SheetNames.join(', ')+'.');
   const g=(o,k)=>{const key=Object.keys(o).find(x=>x.trim().toLowerCase()===k);return key?o[key]:''};
-  return XLSX.utils.sheet_to_json(ws,{defval:''}).map((o,i)=>({ln:i+2,ustadz:String(g(o,'ustadz')||'').trim(),tgl:toDate(g(o,'tgl')),murid:g(o,'murid'),lokasi:g(o,'lokasi'),jenis:g(o,'jenis kegiatan'),sm:g(o,'surat mulai'),am:g(o,'ayat mulai'),ss:g(o,'surat selesai'),ae:g(o,'ayat selesai'),nilai:g(o,'nilai')}))
+  return XLSX.utils.sheet_to_json(ws,{defval:''}).map((o,i)=>({ln:i+2,batch:String(g(o,'batch')==null?'':g(o,'batch')).trim(),ustadz:String(g(o,'ustadz')||'').trim(),tgl:toDate(g(o,'tgl')),murid:g(o,'murid'),lokasi:g(o,'lokasi'),jenis:g(o,'jenis kegiatan'),sm:g(o,'surat mulai'),am:g(o,'ayat mulai'),ss:g(o,'surat selesai'),ae:g(o,'ayat selesai'),nilai:g(o,'nilai')}))
    .filter(r=>String(r.murid).trim());
 }
 
@@ -346,7 +346,7 @@ function parseLogResponse(o){
   return o.table.rows.map((r,i)=>{
     const c=r.c||[],murid=str(c,'murid');
     if(!murid)return null;
-    return {ln:i+2,ustadz:str(c,'ustadz'),tgl:logDate(cell(c,'tgl')),murid,lokasi:str(c,'lokasi'),jenis:str(c,'jenis kegiatan'),
+    return {ln:i+2,batch:str(c,'batch'),ustadz:str(c,'ustadz'),tgl:logDate(cell(c,'tgl')),murid,lokasi:str(c,'lokasi'),jenis:str(c,'jenis kegiatan'),
       sm:str(c,'surat mulai'),am:val(c,'ayat mulai'),ss:str(c,'surat selesai'),ae:val(c,'ayat selesai'),nilai:val(c,'nilai')};
   }).filter(Boolean);
 }
@@ -436,7 +436,7 @@ function wDoc(children,landscape,vm){
 }
 
 Vue.createApp({
-  data(){return{logoSrc:LOGO_DRIVE_ID?('https://drive.google.com/thumbnail?id='+LOGO_DRIVE_ID+'&sz=w800'):LOGO_DATA,logoData:LOGO_DATA,rows:[],src:'Memuat Google Sheet...',dataSource:'google',googleRows:[],gSheets:LOG_SHEETS.map((x,i)=>({label:'Sheet '+(i+1),state:'loading',n:0,err:''})),uploadName:'',err:'',sel:null,pick:[],printDate:'',targetMode:'juz',juzSel:[30],juzOpen:false,comboOpen:false,comboQ:'',comboHi:0,busy:false,note:'',photos:[],photoState:'loading',photoErr:'',badImg:{}}},
+  data(){return{logoSrc:LOGO_DRIVE_ID?('https://drive.google.com/thumbnail?id='+LOGO_DRIVE_ID+'&sz=w800'):LOGO_DATA,logoData:LOGO_DATA,rows:[],src:'Memuat Google Sheet...',dataSource:'google',googleRows:[],gSheets:LOG_SHEETS.map((x,i)=>({label:'Sheet '+(i+1),state:'loading',n:0,err:''})),uploadName:'',err:'',sel:null,pick:[],printDate:'',targetMode:'juz',juzSel:[30],batchPick:[],juzOpen:false,comboOpen:false,comboQ:'',comboHi:0,busy:false,note:'',photos:[],photoState:'loading',photoErr:'',badImg:{}}},
   mounted(){
     this.reloadAll(true);
     document.addEventListener('click',e=>{
@@ -472,7 +472,7 @@ Vue.createApp({
       });
       return [...groups.values()].sort((a,b)=>a.dk<b.dk?-1:a.dk>b.dk?1:(a.key<b.key?-1:1)).map(g=>{
         const kn=normKelas(g.kelas);
-        const members=kn?[...new Set(this.rows.filter(r=>normKelas(r.ustadz)===kn).map(r=>String(r.murid||'').trim()).filter(Boolean))]:this.allNames;
+        const members=kn?[...new Set(this.bRows.filter(r=>normKelas(r.ustadz)===kn).map(r=>String(r.murid||'').trim()).filter(Boolean))]:this.allNames;
         const names=[...new Set([...g.rows.map(r=>String(r.murid).trim()),...members])].sort((a,b)=>a.localeCompare(b));
         const items=[];let no=0;
         names.forEach(n=>{
@@ -489,7 +489,7 @@ Vue.createApp({
           });
         });
         const nameSet=new Set(names);
-        const cum=analyze(this.rows.filter(r=>{const k=dkey(r.tgl);return k&&k<=g.dk&&nameSet.has(String(r.murid||'').trim())}),names,this.tgt).list;
+        const cum=analyze(this.bRows.filter(r=>{const k=dkey(r.tgl);return k&&k<=g.dk&&nameSet.has(String(r.murid||'').trim())}),names,this.tgt).list;
         const cnt={baca:0,hadir:0,sakit:0,kabar:0,kosong:0};
         names.forEach(n=>{const rs=g.rows.filter(r=>String(r.murid).trim()===n);
           if(!rs.length){cnt.kosong++;return}
@@ -501,15 +501,24 @@ Vue.createApp({
         return {key:g.key,kelas:g.kelas,dateLong:longDate(g.date),items,sumLine,cum,photos:this.photoMap[g.dk+'|'+kn]||[]};
       });
     },
-    allNames(){return [...new Set(this.rows.map(r=>String(r.murid||'').trim()).filter(Boolean))]},
+    bRows(){return this.batchPick.length?this.rows.filter(r=>this.batchPick.includes(r.batch||'')):this.rows},
+    batchOpts(){
+      const m=new Map();
+      this.rows.forEach(r=>{const k=r.batch||'';const o=m.get(k)||new Set();o.add(String(r.murid||'').trim());m.set(k,o)});
+      const l=[...m.entries()].map(([k,v])=>({key:k,label:k?'Batch '+k:'Tanpa batch',n:v.size}));
+      l.sort((a,b)=>a.key===''?1:b.key===''?-1:a.key.localeCompare(b.key,undefined,{numeric:true}));
+      return l.some(x=>x.key)?l:[];
+    },
+    batchLabel(){return this.batchOpts.filter(o=>this.batchPick.includes(o.key)).map(o=>o.key||'tanpa batch').join(', ')},
+    allNames(){return [...new Set(this.bRows.map(r=>String(r.murid||'').trim()).filter(Boolean))]},
     dateOpts(){
       const m=new Map();
-      this.rows.forEach(r=>{const k=dkey(r.tgl);if(!k)return;const o=m.get(k)||{key:k,date:r.tgl,names:new Set()};o.names.add(String(r.murid).trim());m.set(k,o)});
+      this.bRows.forEach(r=>{const k=dkey(r.tgl);if(!k)return;const o=m.get(k)||{key:k,date:r.tgl,names:new Set()};o.names.add(String(r.murid).trim());m.set(k,o)});
       return [...m.values()].sort((a,b)=>a.key<b.key?-1:1).map(o=>({key:o.key,label:this.fd(o.date),n:o.names.size}));
     },
     filterLabel(){return this.dateOpts.filter(o=>this.pick.includes(o.key)).map(o=>o.label).join(', ')},
-    noDateCount(){return this.rows.filter(r=>!dkey(r.tgl)).length},
-    shownRows(){return this.pick.length?this.rows.filter(r=>this.pick.includes(dkey(r.tgl))):this.rows},
+    noDateCount(){return this.bRows.filter(r=>!dkey(r.tgl)).length},
+    shownRows(){return this.pick.length?this.bRows.filter(r=>this.pick.includes(dkey(r.tgl))):this.bRows},
     hadirCount(){return this.res.list.filter(x=>x.hadir).length},
     activeCount(){return this.res.list.filter(x=>x.log.length).length},
     tgt(){return buildTarget(this.targetMode==='all'?'all':this.juzSel)},
@@ -519,7 +528,7 @@ Vue.createApp({
     avgPct(){const l=this.res.list;return l.length?Math.round(l.reduce((a,x)=>a+x.pct,0)/l.length*10)/10:0},
     trend(){
       const c=this.cur;if(!c)return null;
-      const mine=this.rows.filter(r=>String(r.murid||'').trim()===c.name&&dkey(r.tgl));
+      const mine=this.bRows.filter(r=>String(r.murid||'').trim()===c.name&&dkey(r.tgl));
       const dks=[...new Set(mine.map(r=>dkey(r.tgl)))].sort();
       if(!dks.length)return null;
       let prev={total:0,tuntas:0};
@@ -572,8 +581,14 @@ Vue.createApp({
       try{
         const rows=readRows(await file.arrayBuffer());
         if(!rows.length)throw new Error('Tidak ada baris dengan nama murid di sheet log_bacaan_quran.');
-        this.rows=rows;this.src=file.name;this.uploadName=file.name;this.dataSource='upload';this.sel=null;this.pick=[];
+        this.rows=rows;this.src=file.name;this.uploadName=file.name;this.dataSource='upload';this.sel=null;this.pick=[];this.batchPick=[];
       }catch(e){this.err='Gagal membaca file: '+e.message}
+    },
+    toggleBatch(k){
+      const i=this.batchPick.indexOf(k);
+      this.batchPick=i>=0?this.batchPick.filter(x=>x!==k):[...this.batchPick,k];
+      this.pick=this.pick.filter(d=>this.dateOpts.some(o=>o.key===d));
+      this.sel=null;
     },
     toggleJuz(j){
       const i=this.juzSel.indexOf(j);
@@ -615,7 +630,7 @@ Vue.createApp({
       }
       this.googleRows=all;
       if(this.dataSource==='google'){
-        this.rows=all;this.sel=null;this.pick=[];
+        this.rows=all;this.sel=null;this.pick=[];this.batchPick=[];
         const ok=this.gSheets.filter(x=>x.state==='ok').map(x=>x.label);
         this.src=ok.length?'Google Sheet ('+ok.join(', ')+')':'Google Sheet (gagal dimuat)';
       }
@@ -642,7 +657,7 @@ Vue.createApp({
       return Promise.race([all,new Promise(r=>setTimeout(r,8000))]);
     },
     metaRows(title){
-      return [[title],['Sumber',this.src],['Target',this.tgt.desc],['Filter tanggal',this.pick.length?this.filterLabel:'Semua tanggal'],['Diekspor',todayStr()],[]];
+      return [[title],['Sumber',this.src],['Target',this.tgt.desc],['Batch',this.batchPick.length?this.batchLabel:'Semua batch'],['Filter tanggal',this.pick.length?this.filterLabel:'Semua tanggal'],['Diekspor',todayStr()],[]];
     },
     wbSummary(){
       const t=this.tgt,L=this.res.list;
@@ -677,9 +692,10 @@ Vue.createApp({
       }
       return wb;
     },
-    fileKey(){return slug(this.tgt.key)+(this.pick.length?'-filter-tanggal':'')},
+    fileKey(){return slug(this.tgt.key)+(this.batchPick.length?'-batch-'+slug(this.batchPick.join('-')):'')+(this.pick.length?'-filter-tanggal':'')},
     wMeta(title){
       const c=[wP(title,{size:36,bold:true,after:60}),wP('Sumber: '+this.src,{size:20,color:WMUTE,after:20}),wP('Target '+this.tgt.desc,{size:20,color:WMUTE,after:20})];
+      if(this.batchPick.length)c.push(wP('Batch: '+this.batchLabel+'.',{size:20,bold:true,after:20}));
       if(this.pick.length)c.push(wP([wRun('Tanggal: '+this.filterLabel+'. ',{size:20,bold:true}),wRun('Angka dihitung hanya dari bacaan pada tanggal tersebut.',{size:20,color:WMUTE})],{after:20}));
       c.push(wP('Diekspor '+todayStr(),{size:20,color:WMUTE,after:120}));
       return c;
@@ -788,7 +804,7 @@ Vue.createApp({
     <div>
       <h1>Progress bacaan {{tgt.title}}</h1>
       <p class="mute">Sumber: {{src}}</p>
-      <p class="mute">Target {{tgt.desc}}</p>
+      <p class="mute">Target {{tgt.desc}}<span v-if="batchPick.length">. Batch: {{batchLabel}}</span></p>
       <p class="mute noprint">Foto: {{photoStatus}} <button class="btn small" @click="loadPhotos">Muat ulang foto</button></p>
     </div>
     <div class="actions">
@@ -848,6 +864,15 @@ Vue.createApp({
     <template v-else-if="dataSource==='google'"><b>Belum ada data.</b> Data Google Sheet tidak dapat dimuat atau masih kosong. Coba "Muat ulang", atau upload file Excel (opsional) atau seret file .xlsx ke halaman ini.</template>
     <template v-else><b>Belum ada data.</b> File Excel tidak berisi baris dengan nama murid.</template>
   </div>
+
+  <div class="filterbar" v-if="batchOpts.length">
+    <div class="fhead"><b>Filter batch</b><button class="btn small" v-if="batchPick.length" @click="batchPick=[];pick=pick.filter(d=>dateOpts.some(o=>o.key===d))">Hapus filter</button></div>
+    <div class="chips">
+      <button v-for="o in batchOpts" :key="o.key" class="chip" :class="{on:batchPick.includes(o.key)}" :aria-pressed="batchPick.includes(o.key)" @click="toggleBatch(o.key)">{{o.label}} <small>({{o.n}} murid)</small></button>
+    </div>
+    <p class="mute" v-if="!batchPick.length">Semua batch ditampilkan. Pilih satu atau beberapa batch untuk menyaring data.</p>
+  </div>
+  <p class="msg filternote" v-if="batchPick.length">Menampilkan data batch: <b>{{batchLabel}}</b>.</p>
 
   <div class="filterbar" v-if="dateOpts.length">
     <div class="fhead"><b>Filter tanggal</b><button class="btn small" v-if="pick.length" @click="pick=[]">Hapus filter</button></div>
@@ -970,6 +995,7 @@ Vue.createApp({
   <section class="summary-print" v-if="res.list.length">
     <h1>Ringkasan progress bacaan {{tgt.title}}</h1>
     <p class="mute">Sumber: {{src}}. Dicetak {{printDate}}. Target {{tgt.desc}}.</p>
+    <p class="mute" v-if="batchPick.length"><b>Batch: {{batchLabel}}.</b></p>
     <p class="mute" v-if="pick.length"><b>Tanggal: {{filterLabel}}.</b> Angka dihitung hanya dari bacaan pada tanggal tersebut.</p>
     <div class="tablewrap" style="margin-top:12px"><table class="sumtable">
       <colgroup><col style="width:21%"><col style="width:12%"><col style="width:18%"><col style="width:9%"><col style="width:9%"><col style="width:8%"><col style="width:7%"><col style="width:16%"></colgroup>
