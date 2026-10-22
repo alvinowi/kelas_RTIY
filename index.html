@@ -23,7 +23,9 @@ h2{font-size:19px;margin:24px 0 10px}
 .btn.primary{background:var(--acc);border-color:var(--acc);color:#fff}
 :root[data-theme="dark"] .btn.primary{color:#06222b}
 .btn:focus-visible,.card:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
-.actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}
+.actions{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.agroup{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:6px}
+.alabel{font-size:13px;color:var(--mute);margin-right:2px}
 .msg{padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--card);margin:8px 0;font-size:14px}
 .msg.empty{padding:28px 16px;text-align:center;color:var(--mute)}
 .msg.err{border-color:var(--err);color:var(--err)}
@@ -32,6 +34,24 @@ h2{font-size:19px;margin:24px 0 10px}
 .card{text-align:left;font:inherit;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;cursor:pointer}
 .card.on{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc)}
 .card b{font-size:16px}
+.charts{display:grid;grid-template-columns:1fr;gap:12px}
+.chart{margin:0;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;break-inside:avoid}
+.chart figcaption{font-weight:600;font-size:14px}
+.chart .sub{color:var(--mute);font-size:12.5px;margin:2px 0 6px}
+.chart svg{display:block;width:100%;height:auto}
+.chart text{fill:var(--mute);font-size:11px;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.chart text.val{fill:var(--ink);font-weight:600}
+.chart text.pos{fill:var(--ok);font-weight:600}
+.chart text.nm{fill:var(--ink);font-size:12px}
+.chart .grid line,.chart .axis{stroke:var(--line);stroke-width:1}
+.chart .ln{fill:none;stroke:var(--acc);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+.chart .ar{fill:var(--acc);opacity:.14}
+.chart .dot{fill:var(--card);stroke:var(--acc);stroke-width:2.5}
+.chart .brr{fill:var(--acc)}
+.chart .brr.dim{fill:var(--fill)}
+.chart .row{cursor:pointer}
+.chart .row:hover .brr{opacity:.8}
+.chart .trk{fill:var(--tile)}
 .bar{height:8px;background:var(--tile);border-radius:4px;overflow:hidden;margin:8px 0 4px}
 .bar i{display:block;height:100%;background:var(--ok)}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
@@ -48,6 +68,8 @@ th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;white
 th{color:var(--mute);font-weight:600}
 tr:last-child td{border-bottom:0}
 .hint{margin-top:18px;font-size:13px;color:var(--mute)}
+.srcbar{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin:0 0 12px}
+.srcbar p{margin:0}
 .filterbar{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin:0 0 12px}
 .fhead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
@@ -63,22 +85,50 @@ tr:last-child td{border-bottom:0}
 .targetbar select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
 .targetbar select:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .btn:disabled{opacity:.5;cursor:not-allowed}
-.summary-print{display:none}
+.summary-print,.daily-print{display:none}
+.noprint{}
 .sumtable{table-layout:fixed}
 .sumtable th,.sumtable td{white-space:normal;overflow-wrap:anywhere}
 .sumtable .num{white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}
 .sumtable .pbar{display:flex;align-items:center;gap:6px}
 .sumtable .pbar .bar{flex:1;margin:0}
 .sumfoot{margin-top:12px;font-size:14px}
+.day h1{font-size:22px}
+.day h2{font-size:16px;margin:16px 0 6px}
+.daydate{font-size:15px;margin:2px 0 4px}
+.dayhead{display:flex;align-items:center;justify-content:center;border-bottom:2px solid var(--line);padding-bottom:8px;margin-bottom:12px}
+.dayhead img{height:17mm;width:auto;display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.day h1,.daydate,.daysum{text-align:center}
+.daysum{font-size:13px;color:var(--mute);margin:0 0 10px}
+.daytable tr.abs td{color:var(--warn)}
+.daytable tr.abs td b{color:inherit}
+.daytable{table-layout:fixed;font-size:12px}
+.daytable th,.daytable td{white-space:normal;overflow-wrap:anywhere;padding:6px 7px;vertical-align:top}
+.daytable .num{text-align:right;white-space:nowrap}
+.daytable tr.none td{color:var(--mute)}
+.photos{display:grid;grid-template-columns:1fr;gap:12px}
+.photos.one{grid-template-columns:1fr}
+.photos figure{margin:0}
+.photos img{display:block;width:100%;max-height:130mm;object-fit:contain;border:1px solid var(--line);border-radius:6px;background:#f2f2f2}
+.photos figcaption{font-size:12px;color:var(--mute);margin-top:2px}
+.imgfail{border:1px dashed var(--line);border-radius:6px;padding:14px;font-size:12px;color:var(--mute);margin:0}
 @page{margin:14mm}
 @page summary{size:A4 landscape;margin:12mm}
+@page daily{size:A4 portrait;margin:.3in 12mm}
 @media print{
 :root:root:root{--bg:#fff;--card:#fff;--ink:#000;--mute:#444;--line:#999;--tile:#e2e2e2;--ok:#0b6e8a;--fill:#9fd8e6}
-.actions,.cards,.hint,.filterbar,.targetbar{display:none}
+.actions,.cards,.hint,.filterbar,.targetbar,.srcbar,.cmp{display:none}
 body{background:#fff}
 .bar,.bar i,.tile{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 body[data-print="summary"] .wrap>:not(.summary-print){display:none}
 body[data-print="summary"] .summary-print{display:block;page:summary}
+body[data-print="daily"] .wrap>:not(.daily-print){display:none}
+body[data-print="daily"] .daily-print{display:block;page:daily}
+.noprint{display:none}
+.day{break-after:page}
+.day:last-child{break-after:auto}
+.daily-print .tablewrap{overflow:hidden}
+.photos figure{break-inside:avoid}
 .summary-print .tablewrap{overflow:hidden}
 .sumtable{font-size:12px}
 .sumtable th,.sumtable td{padding:6px 7px}
@@ -94,6 +144,7 @@ tr{break-inside:avoid}
 <div id="app"></div>
 <script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.prod.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@9.5.0/dist/index.iife.js"></script>
 <script>
 const SU=[["Al-Fatihah",7],["Al-Baqarah",286],["Ali 'Imran",200],["An-Nisa'",176],["Al-Ma'idah",120],["Al-An'am",165],["Al-A'raf",206],["Al-Anfal",75],["At-Taubah",129],["Yunus",109],["Hud",123],["Yusuf",111],["Ar-Ra'd",43],["Ibrahim",52],["Al-Hijr",99],["An-Nahl",128],["Al-Isra'",111],["Al-Kahf",110],["Maryam",98],["Taha",135],["Al-Anbiya'",112],["Al-Hajj",78],["Al-Mu'minun",118],["An-Nur",64],["Al-Furqan",77],["Asy-Syu'ara'",227],["An-Naml",93],["Al-Qasas",88],["Al-'Ankabut",69],["Ar-Rum",60],["Luqman",34],["As-Sajdah",30],["Al-Ahzab",73],["Saba'",54],["Fatir",45],["Yasin",83],["As-Saffat",182],["Sad",88],["Az-Zumar",75],["Ghafir",85],["Fussilat",54],["Asy-Syura",53],["Az-Zukhruf",89],["Ad-Dukhan",59],["Al-Jasiyah",37],["Al-Ahqaf",35],["Muhammad",38],["Al-Fath",29],["Al-Hujurat",18],["Qaf",45],["Az-Zariyat",60],["At-Tur",49],["An-Najm",62],["Al-Qamar",55],["Ar-Rahman",78],["Al-Waqi'ah",96],["Al-Hadid",29],["Al-Mujadilah",22],["Al-Hasyr",24],["Al-Mumtahanah",13],["As-Saff",14],["Al-Jumu'ah",11],["Al-Munafiqun",11],["At-Taghabun",18],["At-Talaq",12],["At-Tahrim",12],["Al-Mulk",30],["Al-Qalam",52],["Al-Haqqah",52],["Al-Ma'arij",44],["Nuh",28],["Al-Jinn",28],["Al-Muzzammil",20],["Al-Muddassir",56],["Al-Qiyamah",40],["Al-Insan",31],["Al-Mursalat",50],["An-Naba'",40],["An-Nazi'at",46],["'Abasa",42],["At-Takwir",29],["Al-Infitar",19],["Al-Mutaffifin",36],["Al-Insyiqaq",25],["Al-Buruj",22],["At-Tariq",17],["Al-A'la",19],["Al-Ghasyiyah",26],["Al-Fajr",30],["Al-Balad",20],["Asy-Syams",15],["Al-Lail",21],["Ad-Duha",11],["Asy-Syarh",8],["At-Tin",8],["Al-'Alaq",19],["Al-Qadr",5],["Al-Bayyinah",8],["Az-Zalzalah",8],["Al-'Adiyat",11],["Al-Qari'ah",11],["At-Takasur",8],["Al-'Asr",3],["Al-Humazah",9],["Al-Fil",5],["Quraysh",4],["Al-Ma'un",7],["Al-Kausar",3],["Al-Kafirun",6],["An-Nasr",3],["Al-Lahab",5],["Al-Ikhlas",4],["Al-Falaq",5],["An-Nas",6]].map(([name,ayat],i)=>({no:i+1,name,ayat}));
 const JUZ_START=[[1, 1], [2, 142], [2, 253], [3, 93], [4, 24], [4, 148], [5, 82], [6, 111], [7, 88], [8, 41], [9, 93], [11, 6], [12, 53], [15, 1], [17, 1], [18, 75], [21, 1], [23, 1], [25, 21], [27, 56], [29, 46], [33, 31], [36, 28], [39, 32], [41, 47], [46, 1], [51, 31], [58, 1], [67, 1], [78, 1]];
@@ -123,31 +174,37 @@ const num=v=>(v===''||v==null||isNaN(+v))?null:+v;
 
 function merge(iv){iv.sort((a,b)=>a[0]-b[0]);const o=[];for(const [f,t] of iv){const l=o[o.length-1];if(l&&f<=l[1]+1)l[1]=Math.max(l[1],t);else o.push([f,t]);}return o}
 
+const LOGO_DRIVE_ID='';
+const LOGO_DATA='data:image/png;base64,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';
+const LOGO_W=640,LOGO_H=230;
+function absKind(j){j=String(j||'');if(/sakit/i.test(j))return 'Sakit';if(/tidak\s*ada\s*kabar|tanpa\s*kabar/i.test(j))return 'Tidak ada kabar';return ''}
 function analyze(rows,names,tgt){
   const st={},warns=[];
-  const mk=n=>({name:n,iv:{},log:[],att:[],dates:new Set()});
+  const mk=n=>({name:n,iv:{},log:[],att:[],absen:[],dates:new Set()});
   (names||[]).forEach(n=>{st[n]=mk(n)});
   rows.forEach((r,i)=>{
     const nm=String(r.murid||'').trim(); if(!nm)return;
     const s=st[nm]||(st[nm]=mk(nm));
+    const ak=absKind(r.jenis);
+    if(ak){const t={tgl:r.tgl,lokasi:r.lokasi,jenis:r.jenis,nilai:r.nilai,cnt:0,hadir:true,absen:ak,rentang:ak};s.absen.push(t);s.att.push(t);return}
     const dk=dkey(r.tgl);if(dk)s.dates.add(dk);
     if(/hadir/i.test(String(r.jenis||''))){s.att.push({tgl:r.tgl,lokasi:r.lokasi,jenis:r.jenis,nilai:r.nilai,cnt:0,hadir:true,rentang:'Hadir (tanpa bacaan)'});return}
     const a=findSurat(r.sm),b=findSurat(r.ss),ln=r.ln||i+2;
-    if(!a||!b){warns.push('Baris '+ln+' ('+nm+'): surat "'+(!a?r.sm:r.ss)+'" tidak dikenali, baris dilewati.');return}
+    if(!a||!b){warns.push('Baris '+ln+(r.src?' ['+r.src+']':'')+' ('+nm+'): surat "'+(!a?r.sm:r.ss)+'" tidak dikenali, baris dilewati.');return}
     const am=num(r.am),ae=num(r.ae);
     let cnt=0;
     for(let n=Math.min(a.no,b.no);n<=Math.max(a.no,b.no);n++){
       const su=SU[n-1];let from=1,to=su.ayat;
       if(a.no===b.no){from=am||1;to=ae||su.ayat}
       else{if(n===a.no)from=am||1;if(n===b.no)to=ae||su.ayat}
-      if(to>su.ayat){warns.push('Baris '+ln+' ('+nm+'): ayat '+to+' melebihi jumlah ayat '+su.name+' ('+su.ayat+'), dipotong.');to=su.ayat}
-      if(from>to){warns.push('Baris '+ln+' ('+nm+'): ayat mulai '+from+' lebih besar dari ayat selesai di '+su.name+', dilewati.');continue}
+      if(to>su.ayat){warns.push('Baris '+ln+(r.src?' ['+r.src+']':'')+' ('+nm+'): ayat '+to+' melebihi jumlah ayat '+su.name+' ('+su.ayat+'), dipotong.');to=su.ayat}
+      if(from>to){warns.push('Baris '+ln+(r.src?' ['+r.src+']':'')+' ('+nm+'): ayat mulai '+from+' lebih besar dari ayat selesai di '+su.name+', dilewati.');continue}
       const sg=tgt.segs[n];if(!sg)continue;
       const f=Math.max(from,sg[0]),t=Math.min(to,sg[1]);
       if(f>t)continue;
       (s.iv[n]=s.iv[n]||[]).push([f,t]);cnt+=t-f+1;
     }
-    if(!cnt){warns.push('Baris '+ln+' ('+nm+'): bacaan di luar target ('+tgt.name+'), tidak dihitung.');return}
+    if(!cnt){warns.push('Baris '+ln+(r.src?' ['+r.src+']':'')+' ('+nm+'): bacaan di luar target ('+tgt.name+'), tidak dihitung.');return}
     s.log.push({tgl:r.tgl,lokasi:r.lokasi,jenis:r.jenis,nilai:r.nilai,cnt,
       rentang:label(a)+(am?' : '+am:'')+' \u2192 '+label(b)+(ae?' : '+ae:'')});
   });
@@ -162,7 +219,7 @@ function analyze(rows,names,tgt){
     const dt=x=>x.tgl instanceof Date?x.tgl.getTime():0;
     s.log.sort((x,y)=>dt(y)-dt(x));
     const riwayat=[...s.log,...s.att].sort((x,y)=>dt(y)-dt(x));
-    return {name:s.name,surat,total,tuntas,parsial,pct:Math.round(total/tgt.total*1000)/10,log:s.log,riwayat,hadir:s.dates.size,last:s.log[0]&&s.log[0].tgl};
+    return {name:s.name,surat,total,tuntas,parsial,pct:Math.round(total/tgt.total*1000)/10,log:s.log,riwayat,absen:s.absen.sort((x,y)=>dt(y)-dt(x)),hadir:s.dates.size,last:s.log[0]&&s.log[0].tgl};
   }).sort((x,y)=>x.name.localeCompare(y.name));
   return {list,warns};
 }
@@ -180,10 +237,96 @@ function readRows(buf){
   const ws=wb.Sheets['log_bacaan_quran'];
   if(!ws)throw new Error('Sheet "log_bacaan_quran" tidak ditemukan. Sheet yang ada: '+wb.SheetNames.join(', ')+'.');
   const g=(o,k)=>{const key=Object.keys(o).find(x=>x.trim().toLowerCase()===k);return key?o[key]:''};
-  return XLSX.utils.sheet_to_json(ws,{defval:''}).map((o,i)=>({ln:i+2,tgl:toDate(g(o,'tgl')),murid:g(o,'murid'),lokasi:g(o,'lokasi'),jenis:g(o,'jenis kegiatan'),sm:g(o,'surat mulai'),am:g(o,'ayat mulai'),ss:g(o,'surat selesai'),ae:g(o,'ayat selesai'),nilai:g(o,'nilai')}))
+  return XLSX.utils.sheet_to_json(ws,{defval:''}).map((o,i)=>({ln:i+2,ustadz:String(g(o,'ustadz')||'').trim(),tgl:toDate(g(o,'tgl')),murid:g(o,'murid'),lokasi:g(o,'lokasi'),jenis:g(o,'jenis kegiatan'),sm:g(o,'surat mulai'),am:g(o,'ayat mulai'),ss:g(o,'surat selesai'),ae:g(o,'ayat selesai'),nilai:g(o,'nilai')}))
    .filter(r=>String(r.murid).trim());
 }
 
+const LOG_TAB='log_bacaan_quran';
+const LOG_SHEETS=[{id:'1p_hJAp9I4HBCyVYl1wQ5x8qh7igQWSwXmw1M7YzS0BM'},{id:'1KCqnz12zHmzocQlFYg47LJ2SNXkrTy4mrBzIlldwzHc'}];
+const PHOTO_SHEET={id:'1i3-4MZakvnzAtM6OQrzxezYL1Z7TJJcDtKx8M7DOqkA',gid:'1571643230'};
+const HARI=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+const BULAN=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const longDate=d=>HARI[d.getDay()]+', '+d.getDate()+' '+BULAN[d.getMonth()]+' '+d.getFullYear();
+const normKelas=v=>String(v||'').toLowerCase().replace(/\s+/g,' ').trim();
+function parseSheetDate(c){
+  if(!c)return null;
+  if(typeof c.v==='string'){const m=c.v.match(/^Date\((\d+),(\d+),(\d+)/);if(m)return new Date(+m[1],+m[2],+m[3])}
+  const t=String(c.f||c.v||'').trim();
+  let m=t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if(m){let mo=+m[1],d=+m[2];if(mo>12){d=+m[1];mo=+m[2]}return new Date(+m[3],mo-1,d)}
+  m=t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  return m?new Date(+m[1],m[2]-1,+m[3]):null;
+}
+const driveIds=t=>[...String(t||'').matchAll(/[?&]id=([\w-]{10,})|\/d\/([\w-]{10,})/g)].map(m=>m[1]||m[2]);
+function loadSheetJsonp(url){
+  return new Promise((resolve,reject)=>{
+    const cb='__sheetCb'+Date.now()+Math.floor(Math.random()*1e6);
+    const sc=document.createElement('script');
+    let done=false,tm=null;
+    const hadG=Object.prototype.hasOwnProperty.call(window,'google'),prevG=window.google;
+    const fin=(fn,v)=>{if(done)return;done=true;clearTimeout(tm);try{delete window[cb]}catch(e){window[cb]=undefined}
+      if(hadG)window.google=prevG;else{try{delete window.google}catch(e){window.google=undefined}}
+      sc.remove();fn(v)};
+    window[cb]=o=>fin(resolve,o);
+    window.google={visualization:{Query:{setResponse:o=>fin(resolve,o)}}};
+    tm=setTimeout(()=>fin(reject,new Error('waktu habis menunggu Google Sheet')),15000);
+    sc.onerror=()=>fin(reject,new Error('browser memblokir pemuatan dari Google Sheet (jaringan atau pembatasan halaman)'));
+    sc.onload=()=>setTimeout(()=>fin(reject,new Error('Sheet tidak bisa dibaca (kemungkinan belum dibagikan untuk umum)')),0);
+    sc.src=url.replace('__CB__',cb);
+    document.head.appendChild(sc);
+  });
+}
+function parsePhotoResponse(o){
+  if(!o||(o.status!=='error'&&!o.table))throw new Error('Sheet tidak bisa dibaca (kemungkinan belum dibagikan untuk umum)');
+  if(o.status==='error'){const er=(o.errors||[])[0]||{};throw new Error(er.detailed_message||er.message||'Sheet menolak permintaan')}
+  const cols=o.table.cols.map(c=>String(c.label||'').trim().toLowerCase());
+  const ti=cols.indexOf('tanggal'),ki=cols.indexOf('kelas');
+  const si=cols.map((c,k)=>/screens/.test(c)?k:-1).filter(k=>k>=0);
+  if(ti<0||!si.length)throw new Error('Kolom Tanggal atau Screenshoot tidak ditemukan di sheet');
+  return o.table.rows.map(r=>{
+    const c=r.c||[];
+    const ids=[...new Set(si.flatMap(k=>driveIds(c[k]&&(c[k].v||c[k].f))))];
+    return {date:parseSheetDate(c[ti]),kelas:ki>=0&&c[ki]?String(c[ki].v||'').trim():'',ids};
+  }).filter(x=>x.date&&x.ids.length);
+}
+function logDate(c){
+  if(!c)return '';
+  if(typeof c.v==='string'){const m=c.v.match(/^Date\((\d+),(\d+),(\d+)/);if(m)return new Date(+m[1],+m[2],+m[3])}
+  const t=String(c.f!=null?c.f:(c.v==null?'':c.v)).trim();
+  let m=t.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
+  if(m)return new Date(+m[3],+m[2]-1,+m[1]);
+  m=t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  return m?new Date(+m[1],m[2]-1,+m[3]):t;
+}
+function parseLogResponse(o){
+  if(!o||(o.status!=='error'&&!o.table))throw new Error('Sheet tidak bisa dibaca (kemungkinan belum dibagikan untuk umum)');
+  if(o.status==='error'){const er=(o.errors||[])[0]||{};throw new Error(er.detailed_message||er.message||'Sheet menolak permintaan')}
+  const cols=o.table.cols.map(c=>String(c.label||'').trim().toLowerCase());
+  const ix=k=>cols.indexOf(k);
+  if(['tgl','murid','surat mulai','surat selesai'].some(k=>ix(k)<0))throw new Error('Kolom sheet '+LOG_TAB+' tidak lengkap (perlu Tgl, Murid, Surat Mulai, Surat Selesai)');
+  const cell=(c,k)=>{const i=ix(k);return i<0?null:(c[i]||null)};
+  const val=(c,k)=>{const x=cell(c,k);return x&&x.v!=null?x.v:''};
+  const str=(c,k)=>String(val(c,k)).trim();
+  return o.table.rows.map((r,i)=>{
+    const c=r.c||[],murid=str(c,'murid');
+    if(!murid)return null;
+    return {ln:i+2,ustadz:str(c,'ustadz'),tgl:logDate(cell(c,'tgl')),murid,lokasi:str(c,'lokasi'),jenis:str(c,'jenis kegiatan'),
+      sm:str(c,'surat mulai'),am:val(c,'ayat mulai'),ss:str(c,'surat selesai'),ae:val(c,'ayat selesai'),nilai:val(c,'nilai')};
+  }).filter(Boolean);
+}
+function niceCeil(v){for(const p of [1,10,100,1000,10000])for(const m of [4,8,12,20]){if(v<=m*p)return m*p}return Math.ceil(v/4)*4}
+function niceCeilOld(v){if(v<=0)return 1;const p=Math.pow(10,Math.floor(Math.log10(v)));for(const m of [1,2,2.5,5,10])if(v<=m*p+1e-9)return m*p;return 10*p}
+function calcRange(r){
+  const a=findSurat(r.sm),b=findSurat(r.ss);
+  if(!a||!b)return null;
+  const am=num(r.am),ae=num(r.ae);let cnt=0;
+  for(let n=Math.min(a.no,b.no);n<=Math.max(a.no,b.no);n++){
+    const su=SU[n-1];let f=1,t=su.ayat;
+    if(a.no===b.no){f=am||1;t=ae||su.ayat}else{if(n===a.no)f=am||1;if(n===b.no)t=ae||su.ayat}
+    t=Math.min(t,su.ayat);if(f<=t)cnt+=t-f+1;
+  }
+  return {text:label(a)+(am?' : '+am:'')+' \u2192 '+label(b)+(ae?' : '+ae:''),cnt};
+}
 const todayStr=()=>new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
 const xserial=d=>d instanceof Date&&!isNaN(d)?Math.round((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())-Date.UTC(1899,11,30))/86400000):null;
 const dcell=d=>{const n=xserial(d);return n!=null?{t:'n',v:n,z:'dd mmm yyyy'}:(d?String(d):'-')};
@@ -194,18 +337,128 @@ function sheet(rows,widths){
   return ws;
 }
 async function saveXlsx(wb,filename){
-  const buf=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+  return saveFile(XLSX.write(wb,{bookType:'xlsx',type:'array'}),filename,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+}
+async function saveFile(buf,filename,mime){
   let d=null;
   try{d=window.claude&&await window.claude.use('downloads')}catch(e){d=null}
   if(d){await d.save({filename,data:buf});return}
-  const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const blob=new Blob([buf],{type:mime});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000);
 }
 
+const WFONT='Calibri',WHEAD='E8EEF1',WLINE='BBBBBB',WMUTE='666666';
+const wRun=(t,o={})=>new docx.TextRun({text:String(t==null?'':t),bold:!!o.bold,size:o.size||22,color:o.color,font:WFONT});
+const wP=(t,o={})=>new docx.Paragraph({spacing:{before:o.before||0,after:o.after==null?80:o.after},pageBreakBefore:!!o.pageBreakBefore,keepNext:!!o.keepNext,alignment:o.center?docx.AlignmentType.CENTER:undefined,children:Array.isArray(t)?t:[wRun(t,o)]});
+function wCell(t,w,o={}){
+  const d=docx;
+  return new d.TableCell({width:{size:w,type:d.WidthType.DXA},
+    shading:o.head?{fill:WHEAD,type:d.ShadingType.CLEAR,color:'auto'}:undefined,
+    margins:{top:50,bottom:50,left:90,right:90},
+    children:[new d.Paragraph({alignment:o.right?d.AlignmentType.RIGHT:d.AlignmentType.LEFT,spacing:{after:0},children:[wRun(t,{bold:o.head||o.bold,size:19,color:o.color})]})]});
+}
+function wTable(widths,header,rows,o={}){
+  const d=docx,right=new Set(o.right||[]),bold=new Set(o.bold||[]);
+  const bd={style:d.BorderStyle.SINGLE,size:4,color:WLINE};
+  const total=widths.reduce((a,b)=>a+b,0);
+  const mk=(cells,head,muted)=>new d.TableRow({tableHeader:!!head,cantSplit:true,children:cells.map((t,i)=>wCell(t,widths[i],{head,right:right.has(i),bold:bold.has(i),color:muted?WMUTE:undefined}))});
+  return new d.Table({width:{size:total,type:d.WidthType.DXA},columnWidths:widths,
+    borders:{top:bd,bottom:bd,left:bd,right:bd,insideHorizontal:bd,insideVertical:bd},
+    rows:[...(header?[mk(header,true)]:[]),...rows.map(r=>Array.isArray(r)?mk(r,false,false):mk(r.cells,false,r.muted))]});
+}
+const driveView=id=>'https://drive.google.com/file/d/'+id+'/view';
+async function wPhoto(id){
+  const urls=['https://lh3.googleusercontent.com/d/'+id+'=w1200','https://drive.google.com/thumbnail?id='+id+'&sz=w1200'];
+  for(const u of urls){
+    try{
+      const r=await fetch(u,{mode:'cors',credentials:'omit',referrerPolicy:'no-referrer'});
+      if(!r.ok)continue;
+      const b=await r.blob();
+      if(!/^image\//.test(b.type))continue;
+      const bmp=await createImageBitmap(b);
+      const sc=Math.min(1,1000/bmp.width),c=document.createElement('canvas');
+      c.width=Math.max(1,Math.round(bmp.width*sc));c.height=Math.max(1,Math.round(bmp.height*sc));
+      const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(bmp,0,0,c.width,c.height);
+      const out=await new Promise(res=>c.toBlob(res,'image/png'));
+      return {data:new Uint8Array(await out.arrayBuffer()),w:c.width,h:c.height};
+    }catch(e){}
+  }
+  return null;
+}
+function wPhotoParas(id,k,img,maxW,maxH){
+  const d=docx;
+  if(!img)return [new d.Paragraph({spacing:{after:40},children:[new d.ExternalHyperlink({link:driveView(id),children:[new d.TextRun({text:'Foto '+(k+1)+' tidak dapat ditanam. Buka di Google Drive',size:19,font:WFONT,color:'0563C1',underline:{}})]})]})];
+  const sc=Math.min(maxW/img.w,maxH/img.h,1);
+  return [new d.Paragraph({spacing:{after:20},children:[new d.ImageRun({type:'png',data:img.data,transformation:{width:Math.round(img.w*sc),height:Math.round(img.h*sc)}})]}),
+          wP('Foto '+(k+1),{size:18,color:WMUTE,after:60})];
+}
+function wDoc(children,landscape,vm){
+  const d=docx;
+  return new d.Document({styles:{default:{document:{run:{font:WFONT,size:22}}}},
+    sections:[{properties:{page:{size:{width:11906,height:16838,orientation:landscape?d.PageOrientation.LANDSCAPE:d.PageOrientation.PORTRAIT},margin:{top:vm==null?850:vm,bottom:vm==null?850:vm,left:850,right:850,header:vm==null?708:0,footer:vm==null?708:0}}},children}]});
+}
+
 Vue.createApp({
-  data(){return{rows:[],src:'Belum ada file diupload',err:'',sel:null,pick:[],printDate:'',targetSel:30}},
+  data(){return{logoSrc:LOGO_DRIVE_ID?('https://drive.google.com/thumbnail?id='+LOGO_DRIVE_ID+'&sz=w800'):LOGO_DATA,logoData:LOGO_DATA,rows:[],src:'Memuat Google Sheet...',dataSource:'google',googleRows:[],gSheets:LOG_SHEETS.map((x,i)=>({label:'Sheet '+(i+1),state:'loading',n:0,err:''})),uploadName:'',err:'',sel:null,pick:[],printDate:'',targetSel:30,busy:false,note:'',photos:[],photoState:'loading',photoErr:'',badImg:{}}},
+  mounted(){this.reloadAll(true)},
   computed:{
+    loadingGoogle(){return this.dataSource==='google'&&this.gSheets.some(x=>x.state==='loading')},
+    allGoogleFailed(){return this.gSheets.every(x=>x.state==='error')},
+    photoMap(){
+      const m={};
+      this.photos.forEach(p=>{const k=dkey(p.date)+'|'+normKelas(p.kelas);(m[k]=m[k]||[]);p.ids.forEach(id=>{if(!m[k].includes(id))m[k].push(id)})});
+      return m;
+    },
+    photoStatus(){
+      if(this.photoState==='loading')return 'memuat dari Google Sheet';
+      if(this.photoState==='error')return 'gagal dimuat ('+this.photoErr+')';
+      return this.photos.length+' respons foto dimuat';
+    },
+    photoNote(){
+      if(this.photoState==='loading')return 'Foto masih dimuat.';
+      if(this.photoState==='error')return 'Foto tidak tersedia: '+this.photoErr+'.';
+      return 'Tidak ada foto untuk tanggal dan kelas ini.';
+    },
+    dailyPages(){
+      const groups=new Map();
+      this.shownRows.forEach(r=>{
+        const dk=dkey(r.tgl);if(!dk||!String(r.murid||'').trim())return;
+        const k=dk+'|'+normKelas(r.ustadz);
+        let g=groups.get(k);if(!g){g={key:k,dk,date:r.tgl,kelas:r.ustadz||'',rows:[]};groups.set(k,g)}
+        g.rows.push(r);
+      });
+      return [...groups.values()].sort((a,b)=>a.dk<b.dk?-1:a.dk>b.dk?1:(a.key<b.key?-1:1)).map(g=>{
+        const kn=normKelas(g.kelas);
+        const members=kn?[...new Set(this.rows.filter(r=>normKelas(r.ustadz)===kn).map(r=>String(r.murid||'').trim()).filter(Boolean))]:this.allNames;
+        const names=[...new Set([...g.rows.map(r=>String(r.murid).trim()),...members])].sort((a,b)=>a.localeCompare(b));
+        const items=[];let no=0;
+        names.forEach(n=>{
+          const rs=g.rows.filter(r=>String(r.murid).trim()===n);
+          no++;
+          if(!rs.length){items.push({no,murid:n,jenis:'-',lokasi:'-',rentang:'Tidak ada kegiatan',ayat:'-',nilai:'-',none:true,status:'none'});return}
+          rs.forEach((r,i)=>{
+            const ak=absKind(r.jenis);
+            const hadir=!ak&&/hadir/i.test(String(r.jenis||''));
+            const c=hadir||ak?null:calcRange(r);
+            items.push({no:i?'':no,murid:i?'':n,jenis:r.jenis||'-',lokasi:r.lokasi||'-',
+              rentang:ak?ak:(hadir?'Hadir (tanpa bacaan)':(c?c.text:'Surat tidak dikenali')),status:ak?'abs':'',
+              ayat:hadir||ak||!c?'-':c.cnt,nilai:r.nilai===''||r.nilai==null?'-':r.nilai});
+          });
+        });
+        const nameSet=new Set(names);
+        const cum=analyze(this.rows.filter(r=>{const k=dkey(r.tgl);return k&&k<=g.dk&&nameSet.has(String(r.murid||'').trim())}),names,this.tgt).list;
+        const cnt={baca:0,hadir:0,sakit:0,kabar:0,kosong:0};
+        names.forEach(n=>{const rs=g.rows.filter(r=>String(r.murid).trim()===n);
+          if(!rs.length){cnt.kosong++;return}
+          if(rs.some(r=>{const j=String(r.jenis||'');return !absKind(j)&&!/hadir/i.test(j)}))cnt.baca++;
+          else if(rs.some(r=>/hadir/i.test(String(r.jenis||''))&&!absKind(r.jenis)))cnt.hadir++;
+          else if(rs.some(r=>absKind(r.jenis)==='Sakit'))cnt.sakit++;
+          else cnt.kabar++;});
+        const sumLine=cnt.baca===names.length?'':names.length+' murid: '+[cnt.baca&&cnt.baca+' membaca',cnt.hadir&&cnt.hadir+' hadir tanpa bacaan',cnt.sakit&&cnt.sakit+' sakit',cnt.kabar&&cnt.kabar+' tidak ada kabar',cnt.kosong&&cnt.kosong+' tanpa data'].filter(Boolean).join(', ')+'.';
+        return {key:g.key,kelas:g.kelas,dateLong:longDate(g.date),items,sumLine,cum,photos:this.photoMap[g.dk+'|'+kn]||[]};
+      });
+    },
     allNames(){return [...new Set(this.rows.map(r=>String(r.murid||'').trim()).filter(Boolean))]},
     dateOpts(){
       const m=new Map();
@@ -220,6 +473,50 @@ Vue.createApp({
     tgt(){return buildTarget(this.targetSel)},
     res(){return analyze(this.shownRows,this.allNames,this.tgt)},
     avgPct(){const l=this.res.list;return l.length?Math.round(l.reduce((a,x)=>a+x.pct,0)/l.length*10)/10:0},
+    trend(){
+      const c=this.cur;if(!c)return null;
+      const mine=this.rows.filter(r=>String(r.murid||'').trim()===c.name&&dkey(r.tgl));
+      const dks=[...new Set(mine.map(r=>dkey(r.tgl)))].sort();
+      if(!dks.length)return null;
+      let prev={total:0,tuntas:0};
+      return dks.map(dk=>{
+        const a=analyze(mine.filter(r=>dkey(r.tgl)<=dk),[c.name],this.tgt).list[0];
+        const dt=mine.find(r=>dkey(r.tgl)===dk).tgl;
+        const p={dk,label:dt.getDate()+' '+BULAN[dt.getMonth()].slice(0,3),full:longDate(dt),total:a.total,pct:a.pct,tuntas:a.tuntas,delta:a.total-prev.total,dTuntas:a.tuntas-prev.tuntas};
+        prev=a;return p;
+      });
+    },
+    chartA(){
+      const t=this.trend;if(!t)return null;
+      const W=640,H=230,L=44,R=30,T=22,B=40,iw=W-L-R,ih=H-T-B;
+      const mx=Math.min(100,niceCeil(Math.max(5,...t.map(p=>p.pct))));
+      const y=v=>T+ih*(1-v/mx),n=t.length,step=Math.ceil(n/10);
+      const pts=t.map((p,i)=>({...p,x:n===1?L+iw/2:L+16+i*(iw-32)/(n-1),y:y(p.pct),showLabel:(i%step===0&&n-1-i>=step)||i===n-1}));
+      const line=pts.map((p,i)=>(i?'L':'M')+p.x.toFixed(1)+' '+p.y.toFixed(1)).join(' ');
+      const area=n>1?line+' L'+pts[n-1].x.toFixed(1)+' '+y(0)+' L'+pts[0].x.toFixed(1)+' '+y(0)+' Z':'';
+      const ticks=[0,1,2,3,4].map(k=>({v:+(mx*k/4).toFixed(1),y:y(mx*k/4)}));
+      return {W,H,L,R,T,B,pts,line,area,ticks,base:y(0)};
+    },
+    chartB(){
+      const t=this.trend;if(!t)return null;
+      const W=640,H=250,L=44,R=30,T=22,B=62,iw=W-L-R,ih=H-T-B;
+      const mx=niceCeil(Math.max(5,...t.map(p=>p.delta)));
+      const y=v=>T+ih*(1-v/mx),n=t.length,bw=iw/n,w=Math.min(44,bw*.6),step=Math.ceil(n/10);
+      const bars=t.map((p,i)=>({...p,cx:L+bw*(i+.5),x:L+bw*(i+.5)-w/2,w,y:y(p.delta),h:Math.max(0,y(0)-y(p.delta)),showLabel:(i%step===0&&n-1-i>=step)||i===n-1}));
+      const ticks=[0,1,2,3,4].map(k=>({v:+(mx*k/4).toFixed(1),y:y(mx*k/4)}));
+      return {W,H,L,R,T,bars,ticks,base:y(0),wide:bw>=52,mxd:Math.max(...t.map(p=>p.delta))};
+    },
+    trendNote(){
+      const t=this.trend;if(!t)return '';
+      const b=t.reduce((m,p)=>p.delta>m.delta?p:m,t[0]);
+      return 'Dari 0% menjadi '+t[t.length-1].pct+'% dalam '+t.length+' tanggal kegiatan. Hari terbaik: '+b.full+' (+'+b.delta+' ayat baru).';
+    },
+    chartC(){
+      const l=[...this.res.list].sort((a,b)=>b.pct-a.pct||a.name.localeCompare(b.name));
+      if(!l.length)return null;
+      const W=640,rh=28,T=6,L=170,bw=270,mx=Math.min(100,niceCeil(Math.max(5,...l.map(x=>x.pct))));
+      return {W,H:T+rh*l.length+6,rows:l.map((x,i)=>({name:x.name,short:x.name.length>24?x.name.slice(0,23)+'…':x.name,y:T+rh*i,w:Math.max(x.pct>0?2:0,bw*x.pct/mx),pct:x.pct,tuntas:x.tuntas,on:this.cur&&x.name===this.cur.name})),L,bw,mx};
+    },
     cur(){const l=this.res.list;return l.find(x=>x.name===this.sel)||l[0]||null}
   },
   methods:{
@@ -231,12 +528,57 @@ Vue.createApp({
       try{
         const rows=readRows(await file.arrayBuffer());
         if(!rows.length)throw new Error('Tidak ada baris dengan nama murid di sheet log_bacaan_quran.');
-        this.rows=rows;this.src=file.name;this.sel=null;this.pick=[];
+        this.rows=rows;this.src=file.name;this.uploadName=file.name;this.dataSource='upload';this.sel=null;this.pick=[];
       }catch(e){this.err='Gagal membaca file: '+e.message}
     },
+    absText(x){const a=x.absen&&x.absen[0];return a?a.absen+(x.absen.length>1?' ('+x.absen.length+'x)':''):''},
+    noLogText(x){return x.hadir?'Hadir, tanpa bacaan':(this.absText(x)||(this.pick.length?'Tidak ada setoran':'-'))},
     emptyMsg(c){
+      if(!c.hadir&&c.absen&&c.absen.length)return c.absen[0].absen+(this.pick.length?' pada tanggal terpilih.':'. Belum ada setoran.');
       if(c.hadir)return this.pick.length?'Hadir pada tanggal terpilih, tidak ada bacaan dalam target.':'Hadir, belum ada bacaan dalam target.';
       return this.pick.length?'Tidak ada setoran pada tanggal terpilih.':'Belum ada setoran.';
+    },
+    async loadGoogleData(){
+      this.gSheets=LOG_SHEETS.map((x,i)=>({label:'Sheet '+(i+1),state:'loading',n:0,err:''}));
+      const all=[];
+      for(let i=0;i<LOG_SHEETS.length;i++){
+        const g=this.gSheets[i];
+        try{
+          const u='https://docs.google.com/spreadsheets/d/'+LOG_SHEETS[i].id+'/gviz/tq?tqx=out:json;responseHandler:__CB__&headers=1&sheet='+encodeURIComponent(LOG_TAB);
+          const rows=parseLogResponse(await loadSheetJsonp(u));
+          const names=[...new Set(rows.map(r=>r.ustadz).filter(Boolean))];
+          g.label=names.length?names.join(', '):'Sheet '+(i+1);
+          rows.forEach(r=>{r.src=g.label});
+          g.n=rows.length;g.state='ok';all.push(...rows);
+        }catch(e){g.state='error';g.err=(e&&e.message)||'galat tidak dikenal'}
+      }
+      this.googleRows=all;
+      if(this.dataSource==='google'){
+        this.rows=all;this.sel=null;this.pick=[];
+        const ok=this.gSheets.filter(x=>x.state==='ok').map(x=>x.label);
+        this.src=ok.length?'Google Sheet ('+ok.join(', ')+')':'Google Sheet (gagal dimuat)';
+      }
+    },
+    async reloadAll(first){
+      if(!first){this.err='';this.note=''}
+      this.dataSource='google';
+      await this.loadGoogleData();
+      await this.loadPhotos();
+    },
+    async loadPhotos(){
+      this.photoState='loading';this.photoErr='';
+      try{
+        const u='https://docs.google.com/spreadsheets/d/'+PHOTO_SHEET.id+'/gviz/tq?tqx=out:json;responseHandler:__CB__&headers=1&gid='+PHOTO_SHEET.gid;
+        this.photos=parsePhotoResponse(await loadSheetJsonp(u));this.badImg={};this.photoState='ok';
+      }catch(e){
+        this.photos=[];this.photoState='error';
+        this.photoErr=(e&&e.message)||'galat tidak dikenal';
+      }
+    },
+    imagesReady(){
+      const imgs=[...document.querySelectorAll('.daily-print img')];
+      const all=Promise.all(imgs.map(i=>i.complete?1:new Promise(r=>{i.addEventListener('load',r,{once:true});i.addEventListener('error',r,{once:true})})));
+      return Promise.race([all,new Promise(r=>setTimeout(r,8000))]);
     },
     metaRows(title){
       return [[title],['Sumber',this.src],['Target',this.tgt.desc],['Filter tanggal',this.pick.length?this.filterLabel:'Semua tanggal'],['Diekspor',todayStr()],[]];
@@ -246,7 +588,7 @@ Vue.createApp({
       const rows=this.metaRows('Ringkasan progress bacaan '+t.title);
       rows.push(['Murid','Ayat terbaca','Target (ayat)','Progress (%)','Surat tuntas','Surat dalam target','Surat sebagian','Setoran','Hadir (tanggal)','Setoran terakhir']);
       L.forEach(x=>rows.push([x.name,x.total,t.total,x.pct,x.tuntas,t.nSeg,x.parsial,x.log.length,x.hadir,
-        x.log.length?dcell(x.last):(x.hadir?'Hadir, tanpa bacaan':(this.pick.length?'Tidak ada setoran':'-'))]));
+        x.log.length?dcell(x.last):this.noLogText(x)]));
       rows.push([]);
       rows.push(['Jumlah murid',L.length]);
       rows.push(['Rata-rata progress (%)',this.avgPct]);
@@ -274,6 +616,88 @@ Vue.createApp({
       }
       return wb;
     },
+    fileKey(){return slug(this.tgt.sel==='all'?'semua-juz':'juz-'+this.tgt.sel)+(this.pick.length?'-filter-tanggal':'')},
+    wMeta(title){
+      const c=[wP(title,{size:36,bold:true,after:60}),wP('Sumber: '+this.src,{size:20,color:WMUTE,after:20}),wP('Target '+this.tgt.desc,{size:20,color:WMUTE,after:20})];
+      if(this.pick.length)c.push(wP([wRun('Tanggal: '+this.filterLabel+'. ',{size:20,bold:true}),wRun('Angka dihitung hanya dari bacaan pada tanggal tersebut.',{size:20,color:WMUTE})],{after:20}));
+      c.push(wP('Diekspor '+todayStr(),{size:20,color:WMUTE,after:120}));
+      return c;
+    },
+    lastText(x){return x.log.length?this.fd(x.last):this.noLogText(x)},
+    docSummary(){
+      const t=this.tgt,L=this.res.list;
+      const ch=this.wMeta('Ringkasan progress bacaan '+t.title);
+      ch.push(wTable([3300,2000,1700,1700,1700,1100,1000,2638],['Murid','Ayat terbaca','Progress','Surat tuntas','Surat sebagian','Setoran','Hadir','Setoran terakhir'],
+        L.map(x=>[x.name,x.total+' / '+t.total,x.pct+'%',x.tuntas+' / '+t.nSeg,x.parsial,x.log.length,x.hadir,this.lastText(x)]),{right:[1,2,3,4,5,6],bold:[0]}));
+      ch.push(wP(L.length+' murid, rata-rata progress '+this.avgPct+'%.'+(this.pick.length?' '+this.hadirCount+' murid hadir, '+this.activeCount+' di antaranya setor bacaan pada tanggal terpilih.':''),{before:160}));
+      return wDoc(ch,true);
+    },
+    docStudent(){
+      const c=this.cur,t=this.tgt;
+      const ch=this.wMeta('Progress bacaan '+t.title);
+      ch.push(wP(c.name,{size:30,bold:true,before:120,after:100,keepNext:true}));
+      ch.push(wTable([3400,6806],null,[
+        ['Progress',c.pct+'%  ('+c.total+' dari '+t.total+' ayat)'],['Surat tuntas',c.tuntas+' dari '+t.nSeg],['Surat baru sebagian',String(c.parsial)],
+        ['Setoran',c.log.length+(c.log.length?' (terakhir '+this.fd(c.last)+')':'')],['Tanggal hadir',String(c.hadir)]],{bold:[0]}));
+      if(!c.log.length)ch.push(wP(this.emptyMsg(c),{before:160,color:WMUTE}));
+      else{
+        ch.push(wP('Per surat',{size:26,bold:true,before:240,after:80,keepNext:true}));
+        ch.push(wTable([2900,1500,1300,1500,3006],['Surat','Ayat terbaca','Progress','Status','Keterangan'],
+          c.surat.map(x=>[x.no+'. '+x.name,x.got+'/'+x.ayat,x.pct+'%',x.got===x.ayat?'Tuntas':(x.got>0?'Sebagian':'Belum'),x.part?'ayat '+x.seg[0]+'-'+x.seg[1]:'']),{right:[1,2]}));
+      }
+      if(c.riwayat.length){
+        ch.push(wP('Riwayat kegiatan',{size:26,bold:true,before:240,after:80,keepNext:true}));
+        ch.push(wTable([1500,900,1400,3906,1400,1100],['Tanggal','Lokasi','Kegiatan','Rentang','Ayat dalam target','Nilai'],
+          c.riwayat.map(l=>[this.fd(l.tgl),l.lokasi||'-',l.jenis||'-',l.rentang,l.hadir?'-':l.cnt,l.nilai===''||l.nilai==null?'-':l.nilai]),{right:[4,5]}));
+      }
+      return wDoc(ch,false);
+    },
+    async docDaily(){
+      const d=docx,pages=this.dailyPages;
+      const ids=[...new Set(pages.flatMap(p=>p.photos))];
+      const imgs={};
+      await Promise.all(ids.map(async id=>{imgs[id]=await wPhoto(id)}));
+      let logo=null;
+      if(LOGO_DRIVE_ID){try{logo=await wPhoto(LOGO_DRIVE_ID)}catch(e){}}
+      if(!logo){const bin=atob(LOGO_DATA.split(',')[1]),u=new Uint8Array(bin.length);for(let k=0;k<bin.length;k++)u[k]=bin.charCodeAt(k);logo={data:u,w:LOGO_W,h:LOGO_H}}
+      const lw=190,lh=Math.round(lw*logo.h/logo.w);
+      const ch=[];
+      pages.forEach((pg,i)=>{
+        ch.push(new d.Paragraph({pageBreakBefore:i>0,alignment:d.AlignmentType.CENTER,spacing:{after:100},border:{bottom:{style:d.BorderStyle.SINGLE,size:8,color:'BFC9CF',space:4}},children:[new d.ImageRun({type:'png',data:logo.data,transformation:{width:lw,height:lh}})]}));
+        ch.push(wP('Laporan harian'+(pg.kelas?' kelas '+pg.kelas:''),{size:34,bold:true,before:120,after:40,center:true}));
+        ch.push(wP(pg.dateLong,{size:26,bold:true,after:40,center:true}));
+        if(pg.sumLine)ch.push(wP(pg.sumLine,{size:19,color:WMUTE,after:120,center:true}));
+        ch.push(wTable([500,2100,1200,900,3106,1300,1100],['No','Murid','Kegiatan','Lokasi','Rentang bacaan','Jumlah ayat','Nilai'],
+          pg.items.map(e=>({cells:[e.no,e.murid,e.jenis,e.lokasi,e.rentang,e.ayat,e.nilai],muted:e.none})),{right:[5,6],bold:[1]}));
+        ch.push(wP('Progress bacaan akumulatif',{size:26,bold:true,before:240,after:40,keepNext:true}));
+        ch.push(wP('Dihitung dari awal data sampai '+pg.dateLong+' (semua tanggal, tidak terpengaruh filter tanggal). Target '+this.tgt.desc+'.',{color:WMUTE,size:18,after:80,keepNext:true}));
+        ch.push(wTable([3300,2000,1700,1600,1606],['Murid','Ayat terbaca','Progress','Surat tuntas','Surat sebagian'],
+          pg.cum.map(x=>[x.name,x.total+' / '+this.tgt.total,x.pct+'%',x.tuntas+' / '+this.tgt.nSeg,x.parsial]),{right:[1,2,3,4],bold:[0]}));
+        ch.push(wP('Foto Zoom',{size:26,bold:true,before:240,after:80,keepNext:true}));
+        const ph=pg.photos;
+        if(!ph.length)ch.push(wP(this.photoNote,{color:WMUTE}));
+        else ph.forEach((id,k)=>wPhotoParas(id,k,imgs[id],600,420).forEach(x=>ch.push(x)));
+      });
+      const total=pages.reduce((a,p)=>a+p.photos.length,0),ok=pages.reduce((a,p)=>a+p.photos.filter(id=>imgs[id]).length,0);
+      return {doc:wDoc(ch,false,432),total,ok};
+    },
+    async exportDocx(kind){
+      this.err='';this.note='';
+      if(!window.docx){this.err='Pustaka Word belum termuat (periksa koneksi internet), lalu muat ulang halaman.';return}
+      this.busy=true;
+      try{
+        const k=this.fileKey();let doc,name,ph=null;
+        if(kind==='summary'){doc=this.docSummary();name='ringkasan-progress-'+k+'.docx'}
+        else if(kind==='detail'){doc=this.docStudent();name='progress-'+slug(this.cur.name)+'-'+k+'.docx'}
+        else{const r=await this.docDaily();doc=r.doc;name='laporan-harian-'+k+'.docx';ph=r}
+        const blob=await docx.Packer.toBlob(doc);
+        await saveFile(await blob.arrayBuffer(),name,'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        if(ph&&ph.total)this.note='Foto tertanam di Word: '+ph.ok+' dari '+ph.total+'.'+(ph.ok<ph.total?' Sisanya berupa link ke Google Drive karena browser tidak dapat mengunduh gambarnya.':'');
+      }catch(e){
+        if(e&&e.code==='declined')return;
+        this.err='Gagal membuat Word: '+((e&&e.message)||e);
+      }finally{this.busy=false}
+    },
     async exportXlsx(kind){
       this.err='';
       try{
@@ -286,10 +710,12 @@ Vue.createApp({
       }
     },
     toggle(k){this.pick=this.pick.includes(k)?this.pick.filter(x=>x!==k):[...this.pick,k]},
-    doPrint(mode){
+    async doPrint(mode){
       this.printDate=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
       document.body.dataset.print=mode;
-      this.$nextTick(()=>window.print());
+      await this.$nextTick();
+      if(mode==='daily')await this.imagesReady();
+      window.print();
     },
     onFile(e){this.load(e.target.files[0]);e.target.value=''},
     onDrop(e){this.load(e.dataTransfer.files[0])},
@@ -302,16 +728,29 @@ Vue.createApp({
       <h1>Progress bacaan {{tgt.title}}</h1>
       <p class="mute">Sumber: {{src}}</p>
       <p class="mute">Target {{tgt.desc}}</p>
+      <p class="mute noprint">Foto: {{photoStatus}} <button class="btn small" @click="loadPhotos">Muat ulang foto</button></p>
     </div>
     <div class="actions">
-      <label class="btn primary">Upload Excel<input type="file" accept=".xlsx,.xls" hidden @change="onFile"></label>
-      <button class="btn" :disabled="!cur" @click="doPrint('detail')">Cetak murid ini</button>
-      <button class="btn" :disabled="!res.list.length" @click="doPrint('summary')">Cetak ringkasan semua</button>
-      <button class="btn" :disabled="!cur" @click="exportXlsx('detail')" title="Unduh data yang sama dengan Cetak murid ini">Ekspor murid ini</button>
-      <button class="btn" :disabled="!res.list.length" @click="exportXlsx('summary')" title="Unduh data yang sama dengan Cetak ringkasan semua">Ekspor ringkasan semua</button>
+      <div class="agroup"><label class="btn primary" title="Opsional: pakai file Excel sendiri sebagai pengganti data Google Sheet">Upload Excel (opsional)<input type="file" accept=".xlsx,.xls" hidden @change="onFile"></label></div>
+      <div class="agroup"><span class="alabel">Cetak</span>
+        <button class="btn" :disabled="!cur" @click="doPrint('detail')">Murid ini</button>
+        <button class="btn" :disabled="!res.list.length" @click="doPrint('summary')">Ringkasan semua</button>
+        <button class="btn" :disabled="!dailyPages.length" @click="doPrint('daily')" title="Cetak semua ringkasan per hari: satu halaman per tanggal dan kelas, lengkap dengan foto">Ringkasan per hari</button>
+      </div>
+      <div class="agroup"><span class="alabel">Word (.docx)</span>
+        <button class="btn" :disabled="busy||!cur" @click="exportDocx('detail')" title="Isi sama dengan Cetak murid ini">Murid ini</button>
+        <button class="btn" :disabled="busy||!res.list.length" @click="exportDocx('summary')" title="Isi sama dengan Cetak ringkasan semua">Ringkasan semua</button>
+        <button class="btn" :disabled="busy||!dailyPages.length" @click="exportDocx('daily')" title="Isi sama dengan Cetak semua ringkasan per hari, termasuk foto">Ringkasan per hari</button>
+      </div>
+      <div class="agroup"><span class="alabel">Excel</span>
+        <button class="btn" :disabled="!cur" @click="exportXlsx('detail')" title="Unduh data yang sama dengan Cetak murid ini">Murid ini</button>
+        <button class="btn" :disabled="!res.list.length" @click="exportXlsx('summary')" title="Unduh data yang sama dengan Cetak ringkasan semua">Ringkasan semua</button>
+      </div>
     </div>
   </header>
   <p v-if="err" class="msg err">{{err}}</p>
+  <p v-if="busy" class="msg">Menyiapkan file Word...</p>
+  <p v-if="note&&!busy" class="msg">{{note}}</p>
 
   <div class="targetbar">
     <label for="tsel"><b>Target progress</b></label>
@@ -322,8 +761,22 @@ Vue.createApp({
     <span class="mute">{{tgt.desc}}</span>
   </div>
 
+  <div class="srcbar">
+    <div class="fhead"><b>Sumber data</b>
+      <button class="btn small" :disabled="loadingGoogle" @click="reloadAll()">{{dataSource==='upload'?'Gunakan data Google Sheet':'Muat ulang dari Google Sheet'}}</button>
+    </div>
+    <p class="mute" v-if="dataSource==='upload'">File Excel: <b>{{uploadName}}</b> (menggantikan data Google Sheet sampai Anda kembali ke Google Sheet).</p>
+    <p class="mute" v-else>
+      <span v-for="(g,i) in gSheets" :key="i" style="display:inline-block;margin-right:14px">
+        {{g.label}}: <b v-if="g.state==='loading'">memuat...</b><b v-else-if="g.state==='ok'">{{g.n}} baris</b><b v-else style="color:var(--err)">gagal ({{g.err}})</b>
+      </span>
+    </p>
+  </div>
+
   <div v-if="!rows.length" class="msg empty">
-    <b>Belum ada data.</b> Klik Upload Excel atau seret file .xlsx ke halaman ini. Laporan per murid akan muncul setelah file dibaca.
+    <b v-if="loadingGoogle">Memuat data dari Google Sheet...</b>
+    <template v-else-if="dataSource==='google'"><b>Belum ada data.</b> Data Google Sheet tidak dapat dimuat atau masih kosong. Coba "Muat ulang", atau upload file Excel (opsional) atau seret file .xlsx ke halaman ini.</template>
+    <template v-else><b>Belum ada data.</b> File Excel tidak berisi baris dengan nama murid.</template>
   </div>
 
   <div class="filterbar" v-if="dateOpts.length">
@@ -339,10 +792,29 @@ Vue.createApp({
     <button v-for="s in res.list" :key="s.name" class="card" :class="{on:cur&&s.name===cur.name}" @click="sel=s.name">
       <b>{{s.name}}</b>
       <div class="bar"><i :style="{width:s.pct+'%'}"></i></div>
-      <span class="mute" v-if="!s.log.length">{{s.hadir?'Hadir, tanpa bacaan':'Tidak ada setoran'}}</span>
+      <span class="mute" v-if="!s.log.length">{{s.hadir?'Hadir, tanpa bacaan':(absText(s)||'Tidak ada setoran')}}</span>
       <span class="mute" v-else>{{s.total}} dari {{tgt.total}} ayat, {{s.pct}}%</span>
     </button>
   </div>
+
+  <section class="cmp" v-if="chartC">
+    <h2>Perbandingan capaian murid</h2>
+    <figure class="chart">
+      <figcaption>Progress terhadap target {{tgt.title}}</figcaption>
+      <p class="sub"><span v-if="pick.length">Hanya bacaan pada tanggal terpilih. </span>Diurutkan dari progress tertinggi. Klik baris untuk membuka detail murid.</p>
+      <svg :viewBox="'0 0 '+chartC.W+' '+chartC.H" role="img" :aria-label="'Perbandingan progress '+chartC.rows.length+' murid'">
+        <g v-for="r in chartC.rows" :key="r.name" class="row" @click="sel=r.name">
+          <title>{{r.name}}: {{r.pct}}%, {{r.tuntas}} dari {{tgt.nSeg}} surat tuntas</title>
+          <rect x="0" :y="r.y" :width="chartC.W" height="28" fill="transparent"/>
+          <text class="nm" x="0" :y="r.y+18" :font-weight="r.on?700:400">{{r.short}}</text>
+          <rect class="trk" :x="chartC.L" :y="r.y+6" :width="chartC.bw" height="16" rx="3"/>
+          <rect class="brr" :class="{dim:!r.on}" :x="chartC.L" :y="r.y+6" :width="r.w" height="16" rx="3"/>
+          <text class="val" :x="chartC.L+chartC.bw+8" :y="r.y+18">{{r.pct}}%</text>
+          <text :x="chartC.W" :y="r.y+18" text-anchor="end">{{r.tuntas}} / {{tgt.nSeg}} surat</text>
+        </g>
+      </svg>
+    </figure>
+  </section>
 
   <section v-if="cur">
     <h2>{{cur.name}}</h2>
@@ -356,6 +828,45 @@ Vue.createApp({
     <div class="bar"><i :style="{width:cur.pct+'%'}"></i></div>
 
     <p v-if="!cur.log.length" class="msg empty">{{emptyMsg(cur)}}</p>
+    <template v-if="cur.log.length&&chartA">
+    <h2>Grafik capaian</h2>
+    <p class="mute" style="margin:-4px 0 8px">{{trendNote}} Grafik memakai semua tanggal murid ini, tidak terpengaruh filter tanggal.</p>
+    <div class="charts">
+      <figure class="chart">
+        <figcaption>Progress akumulatif per tanggal</figcaption>
+        <p class="sub">Persentase ayat unik yang sudah dibaca terhadap target {{tgt.title}}.</p>
+        <svg :viewBox="'0 0 '+chartA.W+' '+chartA.H" role="img" :aria-label="'Progress akumulatif '+cur.name+': '+trendNote">
+          <g class="grid"><line v-for="k in chartA.ticks" :key="k.v" :x1="chartA.L" :x2="chartA.W-chartA.R" :y1="k.y" :y2="k.y"/></g>
+          <text v-for="k in chartA.ticks" :key="'t'+k.v" :x="chartA.L-6" :y="k.y+4" text-anchor="end">{{k.v}}%</text>
+          <path class="ar" :d="chartA.area" v-if="chartA.area"/>
+          <path class="ln" :d="chartA.line"/>
+          <g v-for="p in chartA.pts" :key="p.dk">
+            <title>{{p.full}}: {{p.pct}}% ({{p.total}} dari {{tgt.total}} ayat), {{p.tuntas}} surat tuntas</title>
+            <circle class="dot" :cx="p.x" :cy="p.y" r="4.5"/>
+            <text v-if="chartA.pts.length<=12||p.showLabel" class="val" :x="p.x" :y="p.y-10" text-anchor="middle">{{p.pct}}%</text>
+            <text v-if="p.showLabel" :x="p.x" :y="chartA.H-chartA.B+18" text-anchor="middle">{{p.label}}</text>
+            <text v-if="p.showLabel" :x="p.x" :y="chartA.H-chartA.B+32" text-anchor="middle">{{p.tuntas}} surat</text>
+          </g>
+        </svg>
+        <p class="sub" style="margin:4px 0 0">Baris kedua di bawah tanggal: jumlah surat tuntas akumulatif.</p>
+      </figure>
+      <figure class="chart">
+        <figcaption>Capaian per hari</figcaption>
+        <p class="sub">Ayat baru yang belum pernah dibaca sebelumnya (bacaan ulang tidak dihitung), dan surat yang baru tuntas pada hari itu (angka hijau di bawah tanggal).</p>
+        <svg :viewBox="'0 0 '+chartB.W+' '+chartB.H" role="img" :aria-label="'Ayat baru per hari '+cur.name">
+          <g class="grid"><line v-for="k in chartB.ticks" :key="k.v" :x1="chartB.L" :x2="chartB.W-chartB.R" :y1="k.y" :y2="k.y"/></g>
+          <text v-for="k in chartB.ticks" :key="'t'+k.v" :x="chartB.L-6" :y="k.y+4" text-anchor="end">{{k.v}}</text>
+          <g v-for="b in chartB.bars" :key="b.dk">
+            <title>{{b.full}}: +{{b.delta}} ayat baru{{b.dTuntas>0?', '+b.dTuntas+' surat baru tuntas':''}}</title>
+            <rect class="brr" :x="b.x" :y="b.y" :width="b.w" :height="b.h" rx="3"/>
+            <text v-if="chartB.bars.length<=16||b.showLabel||b.delta>0&&b.delta===chartB.mxd" class="val" :x="b.cx" :y="b.y-6" text-anchor="middle">{{b.delta}}</text>
+            <text v-if="b.showLabel" :x="b.cx" :y="chartB.base+18" text-anchor="middle">{{b.label}}</text>
+            <text v-if="b.dTuntas>0" class="pos" :x="b.cx" :y="chartB.base+34" text-anchor="middle">+{{b.dTuntas}}{{chartB.wide?' surat':''}}</text>
+          </g>
+        </svg>
+      </figure>
+    </div>
+    </template>
     <template v-if="cur.log.length">
     <h2>Per surat</h2>
     <div class="grid">
@@ -393,10 +904,46 @@ Vue.createApp({
         <td class="num">{{s.parsial}}</td>
         <td class="num">{{s.log.length}}</td>
         <td class="num">{{s.hadir}}</td>
-        <td>{{s.log.length?fd(s.last):(s.hadir?'Hadir, tanpa bacaan':(pick.length?'Tidak ada setoran':'-'))}}</td>
+        <td>{{s.log.length?fd(s.last):noLogText(s)}}</td>
       </tr></tbody>
     </table></div>
     <p class="sumfoot">{{res.list.length}} murid, rata-rata progress {{avgPct}}%.<span v-if="pick.length" style="margin-left:.35em">{{hadirCount}} murid hadir, {{activeCount}} di antaranya setor bacaan pada tanggal terpilih.</span></p>
+  </section>
+
+  <section class="daily-print" v-if="dailyPages.length">
+    <article class="day" v-for="pg in dailyPages" :key="pg.key">
+      <div class="dayhead"><img :src="logoSrc" @error="logoSrc=logoData" alt="Yasmanti Foundation"></div>
+      <h1>Laporan harian{{pg.kelas?' kelas '+pg.kelas:''}}</h1>
+      <p class="daydate"><b>{{pg.dateLong}}</b></p>
+      <p class="daysum" v-if="pg.sumLine">{{pg.sumLine}}</p>
+      <div class="tablewrap"><table class="daytable">
+        <colgroup><col style="width:5%"><col style="width:22%"><col style="width:14%"><col style="width:9%"><col style="width:30%"><col style="width:11%"><col style="width:9%"></colgroup>
+        <thead><tr><th>No</th><th>Murid</th><th>Kegiatan</th><th>Lokasi</th><th>Rentang bacaan</th><th class="num">Jumlah ayat</th><th class="num">Nilai</th></tr></thead>
+        <tbody><tr v-for="(e,i) in pg.items" :key="i" :class="{none:e.none,abs:e.status==='abs'}">
+          <td>{{e.no}}</td><td><b>{{e.murid}}</b></td><td>{{e.jenis}}</td><td>{{e.lokasi}}</td><td>{{e.rentang}}</td><td class="num">{{e.ayat}}</td><td class="num">{{e.nilai}}</td>
+        </tr></tbody>
+      </table></div>
+      <h2>Progress bacaan akumulatif</h2>
+      <p class="mute" style="margin:0 0 6px">Dihitung dari awal data sampai {{pg.dateLong}} (semua tanggal, tidak terpengaruh filter tanggal). Target {{tgt.desc}}.</p>
+      <div class="tablewrap"><table class="sumtable">
+        <colgroup><col style="width:26%"><col style="width:16%"><col style="width:22%"><col style="width:15%"><col style="width:21%"></colgroup>
+        <thead><tr><th>Murid</th><th class="num">Ayat terbaca</th><th>Progress</th><th class="num">Surat tuntas</th><th class="num">Surat sebagian</th></tr></thead>
+        <tbody><tr v-for="c in pg.cum" :key="c.name">
+          <td><b>{{c.name}}</b></td><td class="num">{{c.total}} / {{tgt.total}}</td>
+          <td><div class="pbar"><div class="bar"><i :style="{width:c.pct+'%'}"></i></div><span>{{c.pct}}%</span></div></td>
+          <td class="num">{{c.tuntas}} / {{tgt.nSeg}}</td><td class="num">{{c.parsial}}</td>
+        </tr></tbody>
+      </table></div>
+      <h2>Foto Zoom</h2>
+      <div class="photos" :class="{one:pg.photos.length===1}" v-if="pg.photos.length">
+        <figure v-for="(u,i) in pg.photos" :key="u">
+          <img v-if="!badImg[u]" :src="'https://drive.google.com/thumbnail?id='+u+'&sz=w1200'" referrerpolicy="no-referrer" alt="Foto Zoom" @error="badImg[u]=true">
+          <p v-else class="imgfail">Foto tidak dapat dimuat. Pastikan file di Google Drive dibagikan ke "siapa saja dengan link".</p>
+          <figcaption>Foto {{i+1}}</figcaption>
+        </figure>
+      </div>
+      <p v-else class="mute">{{photoNote}}</p>
+    </article>
   </section>
 
   <section v-if="res.warns.length">
@@ -404,7 +951,7 @@ Vue.createApp({
     <p v-for="w in res.warns" class="msg warn">{{w}}</p>
   </section>
 
-  <p class="hint">Upload file .xlsx dengan sheet log_bacaan_quran, atau seret file ke halaman ini. Target bisa dipilih per juz atau seluruh Al-Qur'an; bacaan di luar target tidak dihitung. Ayat mulai kosong dihitung 1, ayat selesai kosong dihitung ayat terakhir surat. Bacaan ulang tidak menambah persentase. Murid yang belum punya baris log tidak muncul. Kegiatan Kehadiran menandai murid ikut serta tanpa bacaan: dihitung sebagai hadir dan tidak mengubah progress. Filter tanggal hanya menampilkan tanggal yang ada kegiatannya, dan cetak mengikuti filter. Tombol Ekspor mengunduh data yang sama dengan tombol Cetak (target dan filter tanggal ikut). File diproses di browser Anda dan tidak dikirim ke server.</p>
+  <p class="hint">Data utama dibaca otomatis dari dua Google Sheet (sheet log_bacaan_quran). Anda juga bisa upload file .xlsx dengan sheet log_bacaan_quran, atau seret file ke halaman ini, untuk menggantikannya. Target bisa dipilih per juz atau seluruh Al-Qur'an; bacaan di luar target tidak dihitung. Ayat mulai kosong dihitung 1, ayat selesai kosong dihitung ayat terakhir surat. Bacaan ulang tidak menambah persentase. Murid yang belum punya baris log tidak muncul. Kegiatan Kehadiran menandai murid ikut serta tanpa bacaan: dihitung sebagai hadir dan tidak mengubah progress. Filter tanggal hanya menampilkan tanggal yang ada kegiatannya, dan cetak mengikuti filter. Tombol Word dan Excel mengunduh data yang sama dengan tombol Cetak (target dan filter tanggal ikut). File diproses di browser Anda dan tidak dikirim ke server.</p>
 </div>`
 }).mount('#app');
 window.addEventListener('afterprint',()=>{delete document.body.dataset.print});
