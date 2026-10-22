@@ -84,6 +84,25 @@ tr:last-child td{border-bottom:0}
 .targetbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:0 0 12px}
 .targetbar select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
 .targetbar select:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.targetbar .tdesc{flex-basis:100%}
+.jmulti{position:relative}
+.jbtn{padding:6px 10px}
+.jpanel{position:absolute;z-index:20;top:calc(100% + 4px);left:0;width:min(440px,calc(100vw - 32px));background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.jgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:6px}
+.jopt{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:8px;padding:5px 8px;cursor:pointer;font-size:14px}
+.jopt.on{border-color:var(--acc);background:var(--tile)}
+.jfoot{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
+.studentbar{margin:0 0 12px}
+.studentbar>label{display:block;margin-bottom:4px}
+.combo{position:relative;max-width:420px}
+.combo input{width:100%;font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:9px 34px 9px 12px}
+.combo input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.cbtn{position:absolute;right:2px;top:2px;bottom:2px;width:32px;border:0;background:transparent;color:var(--mute);cursor:pointer;font-size:14px}
+.clist{position:absolute;z-index:20;left:0;right:0;top:calc(100% + 4px);margin:0;padding:4px;list-style:none;max-height:320px;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.clist li{display:flex;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:6px;cursor:pointer}
+.clist li.hi{background:var(--tile)}
+.clist li.on span{font-weight:700;color:var(--acc)}
+.clist li.cnone{cursor:default;color:var(--mute)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 .summary-print,.daily-print{display:none}
 .noprint{}
@@ -117,7 +136,7 @@ tr:last-child td{border-bottom:0}
 @page daily{size:A4 portrait;margin:.3in 12mm}
 @media print{
 :root:root:root{--bg:#fff;--card:#fff;--ink:#000;--mute:#444;--line:#999;--tile:#e2e2e2;--ok:#0b6e8a;--fill:#9fd8e6}
-.actions,.cards,.hint,.filterbar,.targetbar,.srcbar,.cmp{display:none}
+.actions,.cards,.hint,.filterbar,.targetbar,.srcbar,.cmp,.studentbar{display:none}
 body{background:#fff}
 .bar,.bar i,.tile{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 body[data-print="summary"] .wrap>:not(.summary-print){display:none}
@@ -160,15 +179,30 @@ function findSurat(v){
   if(/^\d/.test(t)){const n=parseInt(t,10);return n>=1&&n<=114?SU[n-1]:null}
   return MAP[norm(t)]||null;
 }
+function juzText(a){
+  const o=[];let i=0;
+  while(i<a.length){let j=i;while(j+1<a.length&&a[j+1]===a[j]+1)j++;o.push(j>i?(j>i+1?a[i]+'-'+a[j]:a[i]+', '+a[j]):''+a[i]);i=j+1}
+  return o.join(', ');
+}
 function buildTarget(sel){
-  const gs=sel==='all'?1:JUZ_G[sel-1];
-  const ge=(sel==='all'||sel===30)?ALL_AYAT:JUZ_G[sel]-1;
+  const all=sel==='all';
+  const js=all?[...Array(30).keys()].map(k=>k+1):[...new Set(sel)].filter(j=>j>=1&&j<=30).sort((x,y)=>x-y);
+  if(!js.length)js.push(30);
+  const ranges={};
+  js.forEach(j=>{
+    const gs=JUZ_G[j-1],ge=j===30?ALL_AYAT:JUZ_G[j]-1;
+    SU.forEach(x=>{const off=CUM[x.no-1],f=Math.max(1,gs-off),t=Math.min(x.ayat,ge-off);
+      if(f<=t){const r=(ranges[x.no]=ranges[x.no]||[]),l=r[r.length-1];if(l&&f<=l[1]+1)l[1]=Math.max(l[1],t);else r.push([f,t])}});
+  });
   const segs={};let total=0,nSeg=0,first=null,last=null;
-  SU.forEach(x=>{const off=CUM[x.no-1],f=Math.max(1,gs-off),t=Math.min(x.ayat,ge-off);
-    if(f<=t){segs[x.no]=[f,t];total+=t-f+1;nSeg++;if(!first)first=[x,f];last=[x,t]}});
-  const name=sel==='all'?"Seluruh Al-Qur'an":'Juz '+sel;
-  const desc=name+': '+label(first[0])+' ayat '+first[1]+' sampai '+label(last[0])+' ayat '+last[1]+', total '+total+' ayat';
-  return {sel,name,title:sel==='all'?name:"Al-Qur'an "+name,desc,segs,total,nSeg};
+  SU.forEach(x=>{const r=ranges[x.no];if(!r)return;
+    segs[x.no]=[r[0][0],r[r.length-1][1]];nSeg++;r.forEach(([f,t])=>{total+=t-f+1});
+    if(!first)first=[x,r[0][0]];last=[x,r[r.length-1][1]]});
+  const contiguous=js.every((j,i)=>!i||j===js[i-1]+1);
+  const name=all?"Seluruh Al-Qur'an":'Juz '+juzText(js);
+  const desc=contiguous?name+': '+label(first[0])+' ayat '+first[1]+' sampai '+label(last[0])+' ayat '+last[1]+', total '+total+' ayat'
+    :name+': total '+total+' ayat dalam '+nSeg+' surat';
+  return {sel:all?'all':js,key:all?'semua-juz':'juz-'+juzText(js).replace(/, /g,'_'),name,title:all?name:"Al-Qur'an "+name,desc,segs,ranges,total,nSeg};
 }
 const num=v=>(v===''||v==null||isNaN(+v))?null:+v;
 
@@ -199,10 +233,12 @@ function analyze(rows,names,tgt){
       else{if(n===a.no)from=am||1;if(n===b.no)to=ae||su.ayat}
       if(to>su.ayat){warns.push('Baris '+ln+(r.src?' ['+r.src+']':'')+' ('+nm+'): ayat '+to+' melebihi jumlah ayat '+su.name+' ('+su.ayat+'), dipotong.');to=su.ayat}
       if(from>to){warns.push('Baris '+ln+(r.src?' ['+r.src+']':'')+' ('+nm+'): ayat mulai '+from+' lebih besar dari ayat selesai di '+su.name+', dilewati.');continue}
-      const sg=tgt.segs[n];if(!sg)continue;
-      const f=Math.max(from,sg[0]),t=Math.min(to,sg[1]);
-      if(f>t)continue;
-      (s.iv[n]=s.iv[n]||[]).push([f,t]);cnt+=t-f+1;
+      const rg=tgt.ranges[n];if(!rg)continue;
+      for(const [rs,re] of rg){
+        const f=Math.max(from,rs),t=Math.min(to,re);
+        if(f>t)continue;
+        (s.iv[n]=s.iv[n]||[]).push([f,t]);cnt+=t-f+1;
+      }
     }
     if(!cnt){warns.push('Baris '+ln+(r.src?' ['+r.src+']':'')+' ('+nm+'): bacaan di luar target ('+tgt.name+'), tidak dihitung.');return}
     s.log.push({tgl:r.tgl,lokasi:r.lokasi,jenis:r.jenis,nilai:r.nilai,cnt,
@@ -211,10 +247,10 @@ function analyze(rows,names,tgt){
   const list=Object.values(st).map(s=>{
     let total=0,tuntas=0,parsial=0;
     const surat=SU.filter(x=>tgt.segs[x.no]).map(x=>{
-      const sg=tgt.segs[x.no],len=sg[1]-sg[0]+1;
+      const sg=tgt.segs[x.no],rg=tgt.ranges[x.no],len=rg.reduce((y,[f,t])=>y+t-f+1,0);
       const got=merge(s.iv[x.no]||[]).reduce((y,[f,t])=>y+t-f+1,0);
       total+=got;if(got===len)tuntas++;else if(got>0)parsial++;
-      return {no:x.no,name:x.name,ayat:len,seg:sg,part:len!==x.ayat,got,pct:Math.round(got/len*100)};
+      return {no:x.no,name:x.name,ayat:len,seg:sg,segText:rg.map(([f,t])=>f+'-'+t).join(', '),part:len!==x.ayat,got,pct:Math.round(got/len*100)};
     });
     const dt=x=>x.tgl instanceof Date?x.tgl.getTime():0;
     s.log.sort((x,y)=>dt(y)-dt(x));
@@ -400,8 +436,14 @@ function wDoc(children,landscape,vm){
 }
 
 Vue.createApp({
-  data(){return{logoSrc:LOGO_DRIVE_ID?('https://drive.google.com/thumbnail?id='+LOGO_DRIVE_ID+'&sz=w800'):LOGO_DATA,logoData:LOGO_DATA,rows:[],src:'Memuat Google Sheet...',dataSource:'google',googleRows:[],gSheets:LOG_SHEETS.map((x,i)=>({label:'Sheet '+(i+1),state:'loading',n:0,err:''})),uploadName:'',err:'',sel:null,pick:[],printDate:'',targetSel:30,busy:false,note:'',photos:[],photoState:'loading',photoErr:'',badImg:{}}},
-  mounted(){this.reloadAll(true)},
+  data(){return{logoSrc:LOGO_DRIVE_ID?('https://drive.google.com/thumbnail?id='+LOGO_DRIVE_ID+'&sz=w800'):LOGO_DATA,logoData:LOGO_DATA,rows:[],src:'Memuat Google Sheet...',dataSource:'google',googleRows:[],gSheets:LOG_SHEETS.map((x,i)=>({label:'Sheet '+(i+1),state:'loading',n:0,err:''})),uploadName:'',err:'',sel:null,pick:[],printDate:'',targetMode:'juz',juzSel:[30],juzOpen:false,comboOpen:false,comboQ:'',comboHi:0,busy:false,note:'',photos:[],photoState:'loading',photoErr:'',badImg:{}}},
+  mounted(){
+    this.reloadAll(true);
+    document.addEventListener('click',e=>{
+      if(!e.target.closest('.jmulti'))this.juzOpen=false;
+      if(!e.target.closest('.combo'))this.closeCombo();
+    });
+  },
   computed:{
     loadingGoogle(){return this.dataSource==='google'&&this.gSheets.some(x=>x.state==='loading')},
     allGoogleFailed(){return this.gSheets.every(x=>x.state==='error')},
@@ -470,7 +512,9 @@ Vue.createApp({
     shownRows(){return this.pick.length?this.rows.filter(r=>this.pick.includes(dkey(r.tgl))):this.rows},
     hadirCount(){return this.res.list.filter(x=>x.hadir).length},
     activeCount(){return this.res.list.filter(x=>x.log.length).length},
-    tgt(){return buildTarget(this.targetSel)},
+    tgt(){return buildTarget(this.targetMode==='all'?'all':this.juzSel)},
+    juzLabel(){return 'Juz '+juzText([...this.juzSel].sort((a,b)=>a-b))},
+    comboList(){const q=this.comboQ.trim().toLowerCase();return this.res.list.filter(x=>!q||x.name.toLowerCase().includes(q))},
     res(){return analyze(this.shownRows,this.allNames,this.tgt)},
     avgPct(){const l=this.res.list;return l.length?Math.round(l.reduce((a,x)=>a+x.pct,0)/l.length*10)/10:0},
     trend(){
@@ -530,6 +574,23 @@ Vue.createApp({
         if(!rows.length)throw new Error('Tidak ada baris dengan nama murid di sheet log_bacaan_quran.');
         this.rows=rows;this.src=file.name;this.uploadName=file.name;this.dataSource='upload';this.sel=null;this.pick=[];
       }catch(e){this.err='Gagal membaca file: '+e.message}
+    },
+    toggleJuz(j){
+      const i=this.juzSel.indexOf(j);
+      if(i>=0){if(this.juzSel.length>1)this.juzSel=this.juzSel.filter(x=>x!==j)}
+      else this.juzSel=[...this.juzSel,j].sort((a,b)=>a-b);
+    },
+    allJuz(){this.juzSel=[...Array(30).keys()].map(k=>k+1)},
+    openCombo(){if(!this.comboOpen){this.comboOpen=true;this.comboQ='';this.comboHi=Math.max(0,this.res.list.findIndex(x=>this.cur&&x.name===this.cur.name))}},
+    toggleCombo(){if(this.comboOpen)this.closeCombo();else{this.$refs.cin.focus();this.openCombo()}},
+    closeCombo(){this.comboOpen=false;this.comboQ=''},
+    chooseStudent(n){this.sel=n;this.closeCombo()},
+    comboKey(e){
+      const n=this.comboList.length;
+      if(e.key==='ArrowDown'){e.preventDefault();if(!this.comboOpen)this.openCombo();else this.comboHi=n?(this.comboHi+1)%n:0}
+      else if(e.key==='ArrowUp'){e.preventDefault();if(this.comboOpen)this.comboHi=n?(this.comboHi-1+n)%n:0}
+      else if(e.key==='Enter'){if(this.comboOpen){e.preventDefault();const x=this.comboList[this.comboHi];if(x)this.chooseStudent(x.name)}}
+      else if(e.key==='Escape'){this.closeCombo();e.target.blur()}
     },
     absText(x){const a=x.absen&&x.absen[0];return a?a.absen+(x.absen.length>1?' ('+x.absen.length+'x)':''):''},
     noLogText(x){return x.hadir?'Hadir, tanpa bacaan':(this.absText(x)||(this.pick.length?'Tidak ada setoran':'-'))},
@@ -606,7 +667,7 @@ Vue.createApp({
       XLSX.utils.book_append_sheet(wb,sheet(rows,[26,60]),'Ringkasan');
       if(c.log.length){
         const r=[['No','Surat','Ayat dalam target','Ayat terbaca','Progress (%)','Status','Bagian ayat']];
-        c.surat.forEach(x=>r.push([x.no,x.name,x.ayat,x.got,x.pct,x.got===x.ayat?'Tuntas':(x.got>0?'Sebagian':'Belum'),x.part?x.seg[0]+'-'+x.seg[1]:'Seluruh surat']));
+        c.surat.forEach(x=>r.push([x.no,x.name,x.ayat,x.got,x.pct,x.got===x.ayat?'Tuntas':(x.got>0?'Sebagian':'Belum'),x.part?x.segText:'Seluruh surat']));
         XLSX.utils.book_append_sheet(wb,sheet(r,[6,22,18,13,13,12,16]),'Per Surat');
       }
       if(c.riwayat.length){
@@ -616,7 +677,7 @@ Vue.createApp({
       }
       return wb;
     },
-    fileKey(){return slug(this.tgt.sel==='all'?'semua-juz':'juz-'+this.tgt.sel)+(this.pick.length?'-filter-tanggal':'')},
+    fileKey(){return slug(this.tgt.key)+(this.pick.length?'-filter-tanggal':'')},
     wMeta(title){
       const c=[wP(title,{size:36,bold:true,after:60}),wP('Sumber: '+this.src,{size:20,color:WMUTE,after:20}),wP('Target '+this.tgt.desc,{size:20,color:WMUTE,after:20})];
       if(this.pick.length)c.push(wP([wRun('Tanggal: '+this.filterLabel+'. ',{size:20,bold:true}),wRun('Angka dihitung hanya dari bacaan pada tanggal tersebut.',{size:20,color:WMUTE})],{after:20}));
@@ -643,7 +704,7 @@ Vue.createApp({
       else{
         ch.push(wP('Per surat',{size:26,bold:true,before:240,after:80,keepNext:true}));
         ch.push(wTable([2900,1500,1300,1500,3006],['Surat','Ayat terbaca','Progress','Status','Keterangan'],
-          c.surat.map(x=>[x.no+'. '+x.name,x.got+'/'+x.ayat,x.pct+'%',x.got===x.ayat?'Tuntas':(x.got>0?'Sebagian':'Belum'),x.part?'ayat '+x.seg[0]+'-'+x.seg[1]:'']),{right:[1,2]}));
+          c.surat.map(x=>[x.no+'. '+x.name,x.got+'/'+x.ayat,x.pct+'%',x.got===x.ayat?'Tuntas':(x.got>0?'Sebagian':'Belum'),x.part?'ayat '+x.segText:'']),{right:[1,2]}));
       }
       if(c.riwayat.length){
         ch.push(wP('Riwayat kegiatan',{size:26,bold:true,before:240,after:80,keepNext:true}));
@@ -701,7 +762,7 @@ Vue.createApp({
     async exportXlsx(kind){
       this.err='';
       try{
-        const k=slug(this.tgt.sel==='all'?'semua-juz':'juz-'+this.tgt.sel)+(this.pick.length?'-filter-tanggal':'');
+        const k=slug(this.tgt.key)+(this.pick.length?'-filter-tanggal':'');
         if(kind==='summary')await saveXlsx(this.wbSummary(),'ringkasan-progress-'+k+'.xlsx');
         else await saveXlsx(this.wbStudent(),'progress-'+slug(this.cur.name)+'-'+k+'.xlsx');
       }catch(e){
@@ -753,12 +814,21 @@ Vue.createApp({
   <p v-if="note&&!busy" class="msg">{{note}}</p>
 
   <div class="targetbar">
-    <label for="tsel"><b>Target progress</b></label>
-    <select id="tsel" v-model="targetSel">
-      <option v-for="j in 30" :key="j" :value="j">Juz {{j}}</option>
-      <option value="all">Semua juz (1 kitab, 6.236 ayat)</option>
+    <label for="tmode"><b>Target progress</b></label>
+    <select id="tmode" v-model="targetMode">
+      <option value="all">Semua surat (1 kitab, 6.236 ayat)</option>
+      <option value="juz">Juz tertentu</option>
     </select>
-    <span class="mute">{{tgt.desc}}</span>
+    <div class="jmulti" v-if="targetMode==='juz'">
+      <button type="button" class="btn jbtn" :aria-expanded="juzOpen" aria-haspopup="true" @click="juzOpen=!juzOpen">{{juzLabel}} <span aria-hidden="true">&#9662;</span></button>
+      <div class="jpanel" v-if="juzOpen" role="group" aria-label="Pilih juz">
+        <div class="jgrid">
+          <label v-for="j in 30" :key="j" class="jopt" :class="{on:juzSel.includes(j)}"><input type="checkbox" :checked="juzSel.includes(j)" @change="toggleJuz(j)"> Juz {{j}}</label>
+        </div>
+        <div class="jfoot"><button type="button" class="btn small" @click="allJuz">Pilih semua juz</button><button type="button" class="btn small" @click="juzSel=[30]">Reset ke Juz 30</button><span class="mute">Minimal satu juz.</span></div>
+      </div>
+    </div>
+    <span class="mute tdesc">{{tgt.desc}}</span>
   </div>
 
   <div class="srcbar">
@@ -788,13 +858,21 @@ Vue.createApp({
   </div>
   <p class="msg filternote" v-if="pick.length">Menampilkan bacaan pada tanggal: <b>{{filterLabel}}</b>. Progress dihitung hanya dari bacaan pada tanggal tersebut.<span v-if="noDateCount" style="margin-left:.35em">{{noDateCount}} baris tanpa tanggal valid tidak ikut dihitung.</span></p>
 
-  <div class="cards" v-if="res.list.length">
-    <button v-for="s in res.list" :key="s.name" class="card" :class="{on:cur&&s.name===cur.name}" @click="sel=s.name">
-      <b>{{s.name}}</b>
-      <div class="bar"><i :style="{width:s.pct+'%'}"></i></div>
-      <span class="mute" v-if="!s.log.length">{{s.hadir?'Hadir, tanpa bacaan':(absText(s)||'Tidak ada setoran')}}</span>
-      <span class="mute" v-else>{{s.total}} dari {{tgt.total}} ayat, {{s.pct}}%</span>
-    </button>
+  <div class="studentbar" v-if="res.list.length">
+    <label for="scombo"><b>Murid</b> <span class="mute">({{res.list.length}} murid)</span></label>
+    <div class="combo">
+      <input id="scombo" ref="cin" type="text" role="combobox" autocomplete="off" aria-autocomplete="list" aria-controls="slist" :aria-expanded="comboOpen"
+        placeholder="Cari nama murid..." :value="comboOpen?comboQ:(cur?cur.name:'')"
+        @focus="openCombo" @click="openCombo" @input="comboQ=$event.target.value;comboOpen=true;comboHi=0" @keydown="comboKey">
+      <button type="button" class="cbtn" tabindex="-1" aria-label="Buka daftar murid" @mousedown.prevent="toggleCombo">&#9662;</button>
+      <ul id="slist" class="clist" role="listbox" v-if="comboOpen">
+        <li v-for="(x,i) in comboList" :key="x.name" role="option" :aria-selected="cur&&x.name===cur.name" :class="{on:cur&&x.name===cur.name,hi:i===comboHi}"
+          @mousedown.prevent="chooseStudent(x.name)" @mousemove="comboHi=i">
+          <span>{{x.name}}</span><small class="mute">{{x.log.length?x.pct+'%':noLogText(x)}}</small>
+        </li>
+        <li v-if="!comboList.length" class="cnone">Tidak ada nama yang cocok.</li>
+      </ul>
+    </div>
   </div>
 
   <section class="cmp" v-if="chartC">
@@ -873,7 +951,7 @@ Vue.createApp({
       <div v-for="t in cur.surat" :key="t.no" class="tile" :class="{full:t.got===t.ayat}" :style="tileBg(t)">
         <b>{{label(t)}}</b>
         <small>{{t.got}}/{{t.ayat}} ayat{{t.got===t.ayat?' \u2713':''}}</small>
-        <small v-if="t.part">ayat {{t.seg[0]}}-{{t.seg[1]}}</small>
+        <small v-if="t.part">ayat {{t.segText}}</small>
       </div>
     </div>
 
