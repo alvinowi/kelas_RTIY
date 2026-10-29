@@ -316,13 +316,13 @@ function parsePhotoResponse(o){
   if(!o||(o.status!=='error'&&!o.table))throw new Error('Sheet tidak bisa dibaca (kemungkinan belum dibagikan untuk umum)');
   if(o.status==='error'){const er=(o.errors||[])[0]||{};throw new Error(er.detailed_message||er.message||'Sheet menolak permintaan')}
   const cols=o.table.cols.map(c=>String(c.label||'').trim().toLowerCase());
-  const ti=cols.indexOf('tanggal'),ki=cols.indexOf('kelas');
+  const ti=cols.indexOf('tanggal'),ki=cols.indexOf('kelas'),li=cols.indexOf('lokasi');
   const si=cols.map((c,k)=>/screens/.test(c)?k:-1).filter(k=>k>=0);
   if(ti<0||!si.length)throw new Error('Kolom Tanggal atau Screenshoot tidak ditemukan di sheet');
   return o.table.rows.map(r=>{
     const c=r.c||[];
     const ids=[...new Set(si.flatMap(k=>driveIds(c[k]&&(c[k].v||c[k].f))))];
-    return {date:parseSheetDate(c[ti]),kelas:ki>=0&&c[ki]?String(c[ki].v||'').trim():'',ids};
+    return {date:parseSheetDate(c[ti]),kelas:ki>=0&&c[ki]?String(c[ki].v||'').trim():'',lokasi:li>=0&&c[li]?String(c[li].v||'').trim():'',ids};
   }).filter(x=>x.date&&x.ids.length);
 }
 function logDate(c){
@@ -449,7 +449,7 @@ Vue.createApp({
     allGoogleFailed(){return this.gSheets.every(x=>x.state==='error')},
     photoMap(){
       const m={};
-      this.photos.forEach(p=>{const k=dkey(p.date)+'|'+normKelas(p.kelas);(m[k]=m[k]||[]);p.ids.forEach(id=>{if(!m[k].includes(id))m[k].push(id)})});
+      this.photos.forEach(p=>{const k=dkey(p.date)+'|'+normKelas(p.kelas),lok=normKelas(p.lokasi=='-'?'':p.lokasi);(m[k]=m[k]||[]);p.ids.forEach(id=>{if(!m[k].some(x=>x.id===id))m[k].push({id,lok})})});
       return m;
     },
     photoStatus(){
@@ -460,7 +460,7 @@ Vue.createApp({
     photoNote(){
       if(this.photoState==='loading')return 'Foto masih dimuat.';
       if(this.photoState==='error')return 'Foto tidak tersedia: '+this.photoErr+'.';
-      return 'Tidak ada foto untuk tanggal dan kelas ini.';
+      return 'Tidak ada foto untuk sesi ini (tanggal, kelas, dan lokasi).';
     },
     dailyPages(){
       const real=l=>{l=String(l==null?'':l).trim();return l&&l!=='-'?l:''};
@@ -491,8 +491,6 @@ Vue.createApp({
       });
       const byDay=new Map();
       groups.forEach(g=>{const k=g.dk+'|'+g.uk;(byDay.get(k)||byDay.set(k,[]).get(k)).push(g)});
-      const zoomOn=new Set();
-      groups.forEach(g=>{if(/zoom/i.test(g.lokasi))zoomOn.add(g.dk+'|'+g.uk)});
       return [...groups.values()].sort((a,b)=>a.dk<b.dk?-1:a.dk>b.dk?1:(a.uk<b.uk?-1:a.uk>b.uk?1:(a.ln<b.ln?-1:1))).map(g=>{
         const kn=g.uk;
         const base=(kn||g.ln)?[...(memberSet.get(kn+'|'+g.ln)||[])]:this.allNames;
@@ -524,8 +522,8 @@ Vue.createApp({
           else if(rs.some(r=>absKind(r.jenis)==='Sakit'))cnt.sakit++;
           else cnt.kabar++;});
         const sumLine=cnt.baca===names.length?'':names.length+' murid: '+[cnt.baca&&cnt.baca+' membaca',cnt.hadir&&cnt.hadir+' hadir tanpa bacaan',cnt.sakit&&cnt.sakit+' sakit',cnt.kabar&&cnt.kabar+' tidak ada kabar',cnt.kosong&&cnt.kosong+' tanpa data'].filter(Boolean).join(', ')+'.';
-        const dayZoom=zoomOn.has(g.dk+'|'+g.uk),isZoom=/zoom/i.test(g.lokasi);
-        return {key:g.key,kelas:g.kelas,lokasi:g.lokasi,dateLong:longDate(g.date),items,sumLine,cum,showPhotos:!dayZoom||isZoom,photos:(!dayZoom||isZoom)?(this.photoMap[g.dk+'|'+kn]||[]):[]};
+        const ph=(this.photoMap[g.dk+'|'+kn]||[]).filter(p=>!p.lok||!g.ln||p.lok===g.ln).map(p=>p.id);
+        return {key:g.key,kelas:g.kelas,lokasi:g.lokasi,dateLong:longDate(g.date),items,sumLine,cum,showPhotos:true,photoTitle:/zoom/i.test(g.lokasi)||!g.lokasi?'Foto Zoom':'Foto Screenshot',photos:ph};
       });
     },
     bRows(){return this.batchPick.length?this.rows.filter(r=>this.batchPick.includes(r.batch||'')):this.rows},
@@ -778,7 +776,7 @@ Vue.createApp({
         ch.push(wTable([3300,2000,1700,1600,1606],['Murid','Ayat terbaca','Progress','Surat tuntas','Surat sebagian'],
           pg.cum.map(x=>[x.name,x.total+' / '+this.tgt.total,x.pct+'%',x.tuntas+' / '+this.tgt.nSeg,x.parsial]),{right:[1,2,3,4],bold:[0]}));
         if(!pg.showPhotos)return;
-        ch.push(wP('Foto Zoom',{size:26,bold:true,before:240,after:80,keepNext:true}));
+        ch.push(wP(pg.photoTitle,{size:26,bold:true,before:240,after:80,keepNext:true}));
         const ph=pg.photos;
         if(!ph.length)ch.push(wP(this.photoNote,{color:WMUTE}));
         else ph.forEach((id,k)=>wPhotoParas(id,k,imgs[id],600,420).forEach(x=>ch.push(x)));
@@ -1067,7 +1065,7 @@ Vue.createApp({
         </tr></tbody>
       </table></div>
       <template v-if="pg.showPhotos">
-      <h2>Foto Zoom</h2>
+      <h2>{{pg.photoTitle}}</h2>
       <div class="photos" :class="{one:pg.photos.length===1}" v-if="pg.photos.length">
         <figure v-for="(u,i) in pg.photos" :key="u">
           <img v-if="!badImg[u]" :src="'https://drive.google.com/thumbnail?id='+u+'&sz=w1200'" referrerpolicy="no-referrer" alt="Foto Zoom" @error="badImg[u]=true">
