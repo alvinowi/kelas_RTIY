@@ -144,8 +144,8 @@ body[data-print="summary"] .summary-print{display:block;page:summary}
 body[data-print="daily"] .wrap>:not(.daily-print){display:none}
 body[data-print="daily"] .daily-print{display:block;page:daily}
 .noprint{display:none}
-.day{break-after:page}
-.day:last-child{break-after:auto}
+.day,.sumgroup{break-after:page}
+.day:last-child,.sumgroup:last-child{break-after:auto}
 .daily-print .tablewrap{overflow:hidden}
 .photos figure{break-inside:avoid}
 .summary-print .tablewrap{overflow:hidden}
@@ -632,6 +632,25 @@ Vue.createApp({
         return c?rangeTarget(c.from,c.to):manual;
       };
     },
+    summaryGroups(){
+      const g=new Map();
+      this.res.list.forEach(x=>{
+        const st=this.studentIdx.get(normKelas(x.name))||{},b=st.batch||'',k=st.kelas||'',key=b+'|'+normKelas(k);
+        if(!g.has(key))g.set(key,{key,batch:b,kelas:k,list:[]});
+        g.get(key).list.push(x);
+      });
+      const arr=[...g.values()].sort((a,b)=>a.batch.localeCompare(b.batch,undefined,{numeric:true})||a.kelas.localeCompare(b.kelas));
+      return arr.map(o=>{
+        const label=[o.batch?'Batch '+o.batch:'',o.kelas].filter(Boolean).join(' - ');
+        const ts=[...new Map(o.list.map(x=>[x.tgt.key,x.tgt])).values()];
+        const td=ts.map(t=>t.name+' ('+t.total+' ayat)').join('; ');
+        const L=o.list;
+        return {key:o.key,label,title:label?'Ringkasan Progress Bacaan '+label:'Ringkasan progress bacaan '+this.tgtView.title,
+          tgtDesc:label?(o.kelas?o.kelas+': ':'')+td:this.tgtView.desc,list:L,
+          avg:L.length?Math.round(L.reduce((a,x)=>a+x.pct,0)/L.length*10)/10:0,
+          hadir:L.filter(x=>x.hadir).length,active:L.filter(x=>x.log.length).length};
+      });
+    },
     settingsOn(){return this.targetMode==='settings'&&this.settings.state==='ok'},
     tgtView(){
       if(!this.settingsOn){
@@ -730,6 +749,11 @@ Vue.createApp({
       else if(e.key==='Enter'){if(this.comboOpen){e.preventDefault();const x=this.comboList[this.comboHi];if(x)this.chooseStudent(x.name)}}
       else if(e.key==='Escape'){this.closeCombo();e.target.blur()}
     },
+    studentTarget(c){
+      if(!this.settingsOn)return this.tgtView.desc;
+      const x=this.studentIdx.get(normKelas(c.name)),info=x&&x.kelas?[x.kelas,x.batch?'Batch '+x.batch:''].filter(Boolean).join(', '):'';
+      return 'sesuai App Settings'+(info?' ('+info+')':'')+': '+c.tgt.desc;
+    },
     absText(x){const a=x.absen&&x.absen[0];return a?a.absen+(x.absen.length>1?' ('+x.absen.length+'x)':''):''},
     noLogText(x){return x.hadir?'Hadir, tanpa bacaan':(this.absText(x)||(this.pick.length?'Tidak ada setoran':'-'))},
     emptyMsg(c){
@@ -797,26 +821,30 @@ Vue.createApp({
       const all=Promise.all(imgs.map(i=>i.complete?1:new Promise(r=>{i.addEventListener('load',r,{once:true});i.addEventListener('error',r,{once:true})})));
       return Promise.race([all,new Promise(r=>setTimeout(r,8000))]);
     },
-    metaRows(title){
-      return [[title],['Sumber',this.src],['Target',this.tgtView.desc],['Batch',this.batchPick.length?this.batchLabel:'Semua batch'],['Ustadz',this.ustadzPick.length?this.ustadzLabel:'Semua ustadz'],['Filter tanggal',this.pick.length?this.filterLabel:'Semua tanggal'],['Diekspor',todayStr()],[]];
+    metaRows(title,target){
+      return [[title],['Sumber',this.src],['Target',target||this.tgtView.desc],['Batch',this.batchPick.length?this.batchLabel:'Semua batch'],['Ustadz',this.ustadzPick.length?this.ustadzLabel:'Semua ustadz'],['Filter tanggal',this.pick.length?this.filterLabel:'Semua tanggal'],['Diekspor',todayStr()],[]];
     },
     wbSummary(){
-      const t=this.tgtView,L=this.res.list;
-      const rows=this.metaRows('Ringkasan progress bacaan '+t.title);
-      rows.push(['Murid','Ayat terbaca','Target (ayat)','Progress (%)','Surat tuntas','Surat dalam target','Surat sebagian','Setoran','Hadir (tanggal)','Setoran terakhir','Target']);
-      L.forEach(x=>rows.push([x.name,x.total,x.tgt.total,x.pct,x.tuntas,x.tgt.nSeg,x.parsial,x.log.length,x.hadir,
-        x.log.length?dcell(x.last):this.noLogText(x),x.tgt.name]));
-      rows.push([]);
-      rows.push(['Jumlah murid',L.length]);
-      rows.push(['Rata-rata progress (%)',this.avgPct]);
-      if(this.pick.length){rows.push(['Murid hadir',this.hadirCount]);rows.push(['Murid setor bacaan',this.activeCount])}
-      const wb=XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb,sheet(rows,[30,14,14,13,13,18,15,10,16,22,18]),'Ringkasan');
+      const wb=XLSX.utils.book_new(),used=new Set(),G=this.summaryGroups;
+      G.forEach((gr,i)=>{
+        const rows=this.metaRows(gr.title,gr.tgtDesc);
+        rows.push(['Murid','Ayat terbaca','Target (ayat)','Progress (%)','Surat tuntas','Surat dalam target','Surat sebagian','Setoran','Hadir (tanggal)','Setoran terakhir','Target']);
+        gr.list.forEach(x=>rows.push([x.name,x.total,x.tgt.total,x.pct,x.tuntas,x.tgt.nSeg,x.parsial,x.log.length,x.hadir,
+          x.log.length?dcell(x.last):this.noLogText(x),x.tgt.name]));
+        rows.push([]);
+        rows.push(['Jumlah murid',gr.list.length]);
+        rows.push(['Rata-rata progress (%)',gr.avg]);
+        if(this.pick.length){rows.push(['Murid hadir',gr.hadir]);rows.push(['Murid setor bacaan',gr.active])}
+        let nm=(G.length>1||gr.label?gr.label:'Ringkasan').replace(/[\\\/?*\[\]:]/g,'').slice(0,31)||'Ringkasan';
+        let k=nm,n=2;while(used.has(k.toLowerCase())){k=nm.slice(0,28)+' '+n++}
+        used.add(k.toLowerCase());
+        XLSX.utils.book_append_sheet(wb,sheet(rows,[30,14,14,13,13,18,15,10,16,22,18]),k);
+      });
       return wb;
     },
     wbStudent(){
       const c=this.cur,t=c.tgt;
-      const rows=this.metaRows('Laporan progress bacaan: '+c.name);
+      const rows=this.metaRows('Progress bacaan '+c.name,this.studentTarget(c));
       rows.push(['Ayat terbaca',c.total],['Target (ayat)',t.total],['Progress (%)',c.pct],['Surat tuntas',c.tuntas],['Surat dalam target',t.nSeg],['Surat sebagian',c.parsial],['Setoran',c.log.length],['Tanggal hadir',c.hadir],['Setoran terakhir',c.log.length?dcell(c.last):'-']);
       if(!c.log.length)rows.push(['Keterangan',this.emptyMsg(c)]);
       const wb=XLSX.utils.book_new();
@@ -834,27 +862,29 @@ Vue.createApp({
       return wb;
     },
     fileKey(){return slug(this.tgtKey)+(this.batchPick.length?'-batch-'+slug(this.batchPick.join('-')):'')+(this.pick.length?'-filter-tanggal':'')},
-    wMeta(title){
-      const c=[wP(title,{size:36,bold:true,after:60}),wP('Sumber: '+this.src,{size:20,color:WMUTE,after:20}),wP('Target '+this.tgtView.desc,{size:20,color:WMUTE,after:20})];
-      if(this.ustadzPick.length)c.push(wP('Ustadz: '+this.ustadzLabel+'.',{size:20,bold:true,after:20}));
-      if(this.batchPick.length)c.push(wP('Batch: '+this.batchLabel+'.',{size:20,bold:true,after:20}));
+    wMeta(title,target,o={}){
+      const c=[wP(title,{size:36,bold:true,after:60,pageBreakBefore:o.pageBreak}),wP('Sumber: '+this.src,{size:20,color:WMUTE,after:20}),wP('Target '+(target||this.tgtView.desc),{size:20,color:WMUTE,after:20})];
+      if(this.ustadzPick.length&&!o.noScope)c.push(wP('Ustadz: '+this.ustadzLabel+'.',{size:20,bold:true,after:20}));
+      if(this.batchPick.length&&!o.noScope)c.push(wP('Batch: '+this.batchLabel+'.',{size:20,bold:true,after:20}));
       if(this.pick.length)c.push(wP([wRun('Tanggal: '+this.filterLabel+'. ',{size:20,bold:true}),wRun('Angka dihitung hanya dari bacaan pada tanggal tersebut.',{size:20,color:WMUTE})],{after:20}));
       c.push(wP('Diekspor '+todayStr(),{size:20,color:WMUTE,after:120}));
       return c;
     },
     lastText(x){return x.log.length?this.fd(x.last):this.noLogText(x)},
     docSummary(){
-      const t=this.tgtView,L=this.res.list;
-      const ch=this.wMeta('Ringkasan progress bacaan '+t.title);
-      ch.push(wTable([3300,2000,1700,1700,1700,1100,1000,2638],['Murid','Ayat terbaca','Progress','Surat tuntas','Surat sebagian','Setoran','Hadir','Setoran terakhir'],
-        L.map(x=>[x.name,x.total+' / '+x.tgt.total,x.pct+'%',x.tuntas+' / '+x.tgt.nSeg,x.parsial,x.log.length,x.hadir,this.lastText(x)]),{right:[1,2,3,4,5,6],bold:[0]}));
-      ch.push(wP(L.length+' murid, rata-rata progress '+this.avgPct+'%.'+(this.pick.length?' '+this.hadirCount+' murid hadir, '+this.activeCount+' di antaranya setor bacaan pada tanggal terpilih.':''),{before:160}));
+      const ch=[];
+      this.summaryGroups.forEach((gr,i)=>{
+        this.wMeta(gr.title,gr.tgtDesc,{pageBreak:i>0,noScope:true}).forEach(x=>ch.push(x));
+        ch.push(wTable([3300,2000,1700,1700,1700,1100,1000,2638],['Murid','Ayat terbaca','Progress','Surat tuntas','Surat sebagian','Setoran','Hadir','Setoran terakhir'],
+          gr.list.map(x=>[x.name,x.total+' / '+x.tgt.total,x.pct+'%',x.tuntas+' / '+x.tgt.nSeg,x.parsial,x.log.length,x.hadir,this.lastText(x)]),{right:[1,2,3,4,5,6],bold:[0]}));
+        ch.push(wP(gr.list.length+' murid, rata-rata progress '+gr.avg+'%.'+(this.pick.length?' '+gr.hadir+' murid hadir, '+gr.active+' di antaranya setor bacaan pada tanggal terpilih.':''),{before:160}));
+      });
       return wDoc(ch,true);
     },
     docStudent(){
       const c=this.cur,t=c.tgt;
-      const ch=this.wMeta('Progress bacaan '+t.title);
-      ch.push(wP(c.name,{size:30,bold:true,before:120,after:100,keepNext:true}));
+      const ch=this.wMeta('Progress bacaan '+c.name,this.studentTarget(c));
+      ch.push(wP('',{after:60}));
       ch.push(wTable([3400,6806],null,[
         ['Progress',c.pct+'%  ('+c.total+' dari '+t.total+' ayat)'],['Surat tuntas',c.tuntas+' dari '+t.nSeg],['Surat baru sebagian',String(c.parsial)],
         ['Setoran',c.log.length+(c.log.length?' (terakhir '+this.fd(c.last)+')':'')],['Tanggal hadir',String(c.hadir)]],{bold:[0]}));
@@ -945,9 +975,9 @@ Vue.createApp({
 <div class="wrap" @dragover.prevent @drop.prevent="onDrop">
   <header>
     <div>
-      <h1>Progress bacaan {{tgtView.title}}</h1>
+      <h1>Progress bacaan {{cur?cur.name:tgtView.title}}</h1>
       <p class="mute">Sumber: {{src}}</p>
-      <p class="mute">Target {{tgtView.desc}}<span v-if="ustadzPick.length">. Ustadz: {{ustadzLabel}}</span><span v-if="batchPick.length">. Batch: {{batchLabel}}</span></p>
+      <p class="mute">Target {{cur?studentTarget(cur):tgtView.desc}}<span v-if="ustadzPick.length">. Ustadz: {{ustadzLabel}}</span><span v-if="batchPick.length">. Batch: {{batchLabel}}</span></p>
       <p class="mute noprint">Foto: {{photoStatus}} <button class="btn small" @click="loadPhotos">Muat ulang foto</button></p>
     </div>
     <div class="actions">
@@ -1147,15 +1177,14 @@ Vue.createApp({
   </section>
 
   <section class="summary-print" v-if="res.list.length">
-    <h1>Ringkasan progress bacaan {{tgtView.title}}</h1>
-    <p class="mute">Sumber: {{src}}. Dicetak {{printDate}}. Target {{tgtView.desc}}.</p>
-    <p class="mute" v-if="ustadzPick.length"><b>Ustadz: {{ustadzLabel}}.</b></p>
-    <p class="mute" v-if="batchPick.length"><b>Batch: {{batchLabel}}.</b></p>
+    <article class="sumgroup" v-for="gr in summaryGroups" :key="gr.key">
+    <h1>{{gr.title}}</h1>
+    <p class="mute">Sumber: {{src}}. Dicetak {{printDate}}. Target {{gr.tgtDesc}}.</p>
     <p class="mute" v-if="pick.length"><b>Tanggal: {{filterLabel}}.</b> Angka dihitung hanya dari bacaan pada tanggal tersebut.</p>
     <div class="tablewrap" style="margin-top:12px"><table class="sumtable">
       <colgroup><col style="width:21%"><col style="width:12%"><col style="width:18%"><col style="width:9%"><col style="width:9%"><col style="width:8%"><col style="width:7%"><col style="width:16%"></colgroup>
       <thead><tr><th>Murid</th><th class="num">Ayat terbaca</th><th>Progress</th><th class="num">Surat tuntas</th><th class="num">Surat sebagian</th><th class="num">Setoran</th><th class="num">Hadir</th><th>Setoran terakhir</th></tr></thead>
-      <tbody><tr v-for="s in res.list" :key="s.name">
+      <tbody><tr v-for="s in gr.list" :key="s.name">
         <td><b>{{s.name}}</b></td>
         <td class="num">{{s.total}} / {{s.tgt.total}}</td>
         <td><div class="pbar"><div class="bar"><i :style="{width:s.pct+'%'}"></i></div><span>{{s.pct}}%</span></div></td>
@@ -1166,7 +1195,8 @@ Vue.createApp({
         <td>{{s.log.length?fd(s.last):noLogText(s)}}</td>
       </tr></tbody>
     </table></div>
-    <p class="sumfoot">{{res.list.length}} murid, rata-rata progress {{avgPct}}%.<span v-if="pick.length" style="margin-left:.35em">{{hadirCount}} murid hadir, {{activeCount}} di antaranya setor bacaan pada tanggal terpilih.</span></p>
+    <p class="sumfoot">{{gr.list.length}} murid, rata-rata progress {{gr.avg}}%.<span v-if="pick.length" style="margin-left:.35em">{{gr.hadir}} murid hadir, {{gr.active}} di antaranya setor bacaan pada tanggal terpilih.</span></p>
+    </article>
   </section>
 
   <section class="daily-print" v-if="dailyPages.length">
