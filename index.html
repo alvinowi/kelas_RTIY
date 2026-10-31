@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Progress Bacaan Al-Qur'an</title>
+<title>Kelas Beasiswa RTIY</title>
 <style>
 :root{--bg:#eef3f5;--card:#fff;--ink:#14232d;--mute:#5d6e79;--line:#d5dee3;--acc:#0b6e8a;--fill:#9fd8e6;--tile:#e4ebee;--ok:#0b6e8a;--warn:#a85a00;--err:#b3261e;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -71,6 +71,22 @@ tr:last-child td{border-bottom:0}
 .hint{margin-top:18px;font-size:13px;color:var(--mute)}
 .srcbar{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin:0 0 12px}
 .srcbar p{margin:0}
+.studenthead{margin:4px 0 14px}
+.studenthead h1{font-size:22px}
+.studenthead p{margin:4px 0 0}
+.titlebox{flex:1;min-width:0}
+.loadbar{max-width:460px;margin:10px 0 4px}
+.loadbar p{margin:2px 0 0}
+.srcprint{display:none}
+.dbox{background:var(--card);border:1px solid var(--line);border-radius:10px;margin:0 0 12px}
+.dbox>summary{cursor:pointer;padding:10px 12px;font-weight:600;list-style:none;display:flex;align-items:center;gap:8px}
+.dbox>summary::-webkit-details-marker{display:none}
+.dbox>summary::before{content:"\25B8";display:inline-block;transition:transform .15s}
+.dbox[open]>summary::before{transform:rotate(90deg)}
+.dbox .dbody{padding:0 12px 12px;display:flex;flex-direction:column;gap:8px}
+.dbox .dbody p{margin:0}
+.dbox .agroup{justify-content:flex-start}
+.dbtns{display:flex;flex-wrap:wrap;gap:6px}
 .filterbar{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin:0 0 12px}
 .fhead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
@@ -109,6 +125,20 @@ tr:last-child td{border-bottom:0}
 .noprint{}
 .sumtable{table-layout:fixed}
 .sumtable th,.sumtable td{white-space:normal;overflow-wrap:anywhere}
+.wkt{white-space:nowrap;line-height:1.35}
+td.num{text-align:right}
+td.link{cursor:pointer;color:var(--ok)}
+td.link:hover{text-decoration:underline}
+td.link:focus-visible{outline:2px solid var(--ok);outline-offset:-2px}
+.sheetwrap{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center;animation:fadein .15s ease-out}
+.sheet{background:var(--card);color:var(--ink);width:100%;max-width:900px;max-height:88vh;overflow:auto;border-radius:16px 16px 0 0;padding:10px 18px 24px;box-shadow:0 -8px 30px rgba(0,0,0,.25);animation:slideup .22s ease-out;position:relative}
+.shandle{width:44px;height:5px;border-radius:3px;background:var(--line);margin:2px auto 8px}
+.sclose{position:sticky;top:0;float:right;z-index:2}
+.sheetday{clear:both}
+body.sheetopen{overflow:hidden}
+@keyframes slideup{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.sheet,.sheetwrap{animation:none}}
 .sumtable .num{white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}
 .sumtable .pbar{display:flex;align-items:center;gap:6px}
 .sumtable .pbar .bar{flex:1;margin:0}
@@ -137,7 +167,8 @@ tr:last-child td{border-bottom:0}
 @page daily{size:A4 portrait;margin:.3in 12mm}
 @media print{
 :root:root:root{--bg:#fff;--card:#fff;--ink:#000;--mute:#444;--line:#999;--tile:#e2e2e2;--ok:#0b6e8a;--fill:#9fd8e6}
-.actions,.cards,.hint,.filterbar,.targetbar,.srcbar,.cmp,.studentbar{display:none}
+.actions,.cards,.hint,.filterbar,.targetbar,.srcbar,.dbox,.cmp,.studentbar,.sheetwrap{display:none!important}
+.srcprint{display:block}
 body{background:#fff}
 .bar,.bar i,.tile{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 body[data-print="summary"] .wrap>:not(.summary-print){display:none}
@@ -145,6 +176,7 @@ body[data-print="summary"] .summary-print{display:block;page:summary}
 body[data-print="daily"] .wrap>:not(.daily-print){display:none}
 body[data-print="daily"] .daily-print{display:block;page:daily}
 .noprint{display:none}
+body[data-print="detail"] .noprint{display:none}
 .day,.sumgroup{break-after:page}
 .day:last-child,.sumgroup:last-child{break-after:auto}
 .daily-print .tablewrap{overflow:hidden}
@@ -222,9 +254,9 @@ function analyze(rows,names,tgtArg){
     const nm=String(r.murid||'').trim(); if(!nm)return;
     const s=st[nm]||(st[nm]=mk(nm));
     const ak=absKind(r.jenis);
-    if(ak){const t={tgl:r.tgl,lokasi:r.lokasi,jenis:r.jenis,nilai:r.nilai,cnt:0,hadir:true,absen:ak,rentang:ak};s.absen.push(t);s.att.push(t);return}
+    if(ak){const t={tgl:r.tgl,jam:r.jam,lokasi:r.lokasi,jenis:r.jenis,nilai:r.nilai,cnt:0,hadir:true,absen:ak,rentang:ak};s.absen.push(t);s.att.push(t);return}
     const dk=dkey(r.tgl);if(dk)s.dates.add(dk);
-    if(/hadir/i.test(String(r.jenis||''))){s.att.push({tgl:r.tgl,lokasi:r.lokasi,jenis:r.jenis,nilai:r.nilai,cnt:0,hadir:true,rentang:'Hadir (tanpa bacaan)'});return}
+    if(/hadir/i.test(String(r.jenis||''))){s.att.push({tgl:r.tgl,jam:r.jam,lokasi:r.lokasi,jenis:r.jenis,nilai:r.nilai,cnt:0,hadir:true,rentang:'Hadir (tanpa bacaan)'});return}
     const a=findSurat(r.sm),b=findSurat(r.ss),ln=r.ln||i+2;
     if(!a||!b){warns.push('Baris '+ln+(r.src?' ['+r.src+']':'')+' ('+nm+'): surat "'+(!a?r.sm:r.ss)+'" tidak dikenali, baris dilewati.');return}
     const am=num(r.am),ae=num(r.ae),tgt=T(nm);
@@ -243,7 +275,7 @@ function analyze(rows,names,tgtArg){
       }
     }
     if(!cnt){warns.push('Baris '+ln+(r.src?' ['+r.src+']':'')+' ('+nm+'): bacaan di luar target ('+tgt.name+'), tidak dihitung.');return}
-    s.log.push({tgl:r.tgl,lokasi:r.lokasi,jenis:r.jenis,nilai:r.nilai,cnt,
+    s.log.push({tgl:r.tgl,jam:r.jam,lokasi:r.lokasi,jenis:r.jenis,nilai:r.nilai,cnt,
       rentang:label(a)+(am?' : '+am:'')+' \u2192 '+label(b)+(ae?' : '+ae:'')});
   });
   const list=Object.values(st).map(s=>{
@@ -257,7 +289,7 @@ function analyze(rows,names,tgtArg){
     });
     const dt=x=>x.tgl instanceof Date?x.tgl.getTime():0;
     s.log.sort((x,y)=>dt(y)-dt(x));
-    const riwayat=[...s.log,...s.att].sort((x,y)=>dt(y)-dt(x));
+    const riwayat=[...s.log,...s.att].sort((x,y)=>dt(x)-dt(y)||String(x.jam||'').localeCompare(String(y.jam||''))||String(x.lokasi||'').localeCompare(String(y.lokasi||'')));
     return {name:s.name,tgt,surat,total,tuntas,parsial,pct:Math.round(total/tgt.total*1000)/10,log:s.log,riwayat,absen:s.absen.sort((x,y)=>dt(y)-dt(x)),hadir:s.dates.size,last:s.log[0]&&s.log[0].tgl};
   }).sort((x,y)=>x.name.localeCompare(y.name));
   return {list,warns};
@@ -442,13 +474,13 @@ async function saveFile(buf,filename,mime){
 
 const WFONT='Calibri',WHEAD='E8EEF1',WLINE='BBBBBB',WMUTE='666666';
 const wRun=(t,o={})=>new docx.TextRun({text:String(t==null?'':t),bold:!!o.bold,size:o.size||22,color:o.color,font:WFONT});
-const wP=(t,o={})=>new docx.Paragraph({spacing:{before:o.before||0,after:o.after==null?80:o.after},pageBreakBefore:!!o.pageBreakBefore,keepNext:!!o.keepNext,alignment:o.center?docx.AlignmentType.CENTER:undefined,children:Array.isArray(t)?t:[wRun(t,o)]});
+const wP=(t,o={})=>new docx.Paragraph({spacing:{before:o.before||0,after:o.after==null?80:o.after},pageBreakBefore:!!o.pageBreakBefore,keepNext:!!o.keepNext,heading:o.heading?docx.HeadingLevel['HEADING_'+o.heading]:undefined,alignment:o.center?docx.AlignmentType.CENTER:undefined,children:Array.isArray(t)?t:[wRun(t,o)]});
 function wCell(t,w,o={}){
   const d=docx;
   return new d.TableCell({width:{size:w,type:d.WidthType.DXA},
     shading:o.head?{fill:WHEAD,type:d.ShadingType.CLEAR,color:'auto'}:undefined,
     margins:{top:50,bottom:50,left:90,right:90},
-    children:[new d.Paragraph({alignment:o.head?d.AlignmentType.CENTER:o.right?d.AlignmentType.RIGHT:d.AlignmentType.LEFT,spacing:{after:0},children:[wRun(o.head?tc(t):t,{bold:o.head||o.bold,size:19,color:o.color})]})]});
+    children:String(t==null?'':t).split('\n').map(line=>new d.Paragraph({alignment:o.head?d.AlignmentType.CENTER:o.right?d.AlignmentType.RIGHT:d.AlignmentType.LEFT,spacing:{after:0},children:[wRun(o.head?tc(line):line,{bold:o.head||o.bold,size:19,color:o.color})]}))});
 }
 function wTable(widths,header,rows,o={}){
   const d=docx,right=new Set(o.right||[]),bold=new Set(o.bold||[]);
@@ -487,20 +519,32 @@ function wPhotoParas(id,k,img,maxW,maxH){
 }
 function wDoc(children,landscape,vm){
   const d=docx;
-  return new d.Document({styles:{default:{document:{run:{font:WFONT,size:22}}}},
+  return new d.Document({styles:{default:{document:{run:{font:WFONT,size:22}}},paragraphStyles:[1,2].map(n=>({id:'Heading'+n,name:'heading '+n,basedOn:'Normal',next:'Normal',quickFormat:true,run:{font:WFONT,bold:true,color:'000000',size:n===1?34:26},paragraph:{spacing:{before:0,after:40},outlineLevel:n-1}}))},
     sections:[{properties:{page:{size:{width:11906,height:16838,orientation:landscape?d.PageOrientation.LANDSCAPE:d.PageOrientation.PORTRAIT},margin:{top:vm==null?850:vm,bottom:vm==null?850:vm,left:850,right:850,header:vm==null?708:0,footer:vm==null?708:0}}},children}]});
 }
 
 Vue.createApp({
-  data(){return{logoSrc:LOGO_DRIVE_ID?('https://drive.google.com/thumbnail?id='+LOGO_DRIVE_ID+'&sz=w800'):LOGO_DATA,logoData:LOGO_DATA,rows:[],src:'Memuat Google Sheet...',dataSource:'google',googleRows:[],gSheets:LOG_SHEETS.map((x,i)=>({label:'Sheet '+(i+1),state:'loading',n:0,err:''})),uploadName:'',err:'',sel:null,pick:[],printDate:'',targetMode:'settings',juzSel:[30],batchPick:[],ustadzPick:[],settings:{state:'loading',err:'',classes:[],students:[]},juzOpen:false,comboOpen:false,comboQ:'',comboHi:0,busy:false,note:'',photos:[],photoState:'loading',photoErr:'',badImg:{}}},
+  data(){return{logoSrc:LOGO_DRIVE_ID?('https://drive.google.com/thumbnail?id='+LOGO_DRIVE_ID+'&sz=w800'):LOGO_DATA,logoData:LOGO_DATA,rows:[],src:'Memuat Google Sheet...',dataSource:'google',googleRows:[],gSheets:LOG_SHEETS.map((x,i)=>({label:'Sheet '+(i+1),state:'loading',n:0,err:''})),uploadName:'',err:'',sel:null,pick:[],printDate:'',targetMode:'settings',juzSel:[30],batchPick:[],ustadzPick:[],settings:{state:'loading',err:'',classes:[],students:[]},juzOpen:false,comboOpen:false,comboQ:'',comboHi:0,busy:false,note:'',photos:[],photoState:'loading',photoErr:'',badImg:{},booting:true,sessOpen:false,sess:null,sessStudent:''}},
   mounted(){
     this.reloadAll(true);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&this.sessOpen)this.closeSession()});
     document.addEventListener('click',e=>{
       if(!e.target.closest('.jmulti'))this.juzOpen=false;
       if(!e.target.closest('.combo'))this.closeCombo();
     });
   },
   computed:{
+    loadingAny(){return this.dataSource==='google'&&(this.settings.state==='loading'||this.gSheets.some(x=>x.state==='loading')||this.photoState==='loading')},
+    loadPct(){
+      const st=[this.settings.state,...this.gSheets.map(x=>x.state),this.photoState];
+      return Math.round(st.filter(x=>x!=='loading').length/st.length*100);
+    },
+    loadLabel(){
+      if(this.settings.state==='loading')return 'Memuat Data Kelas';
+      const g=this.gSheets.find(x=>x.state==='loading');
+      if(g)return 'Memuat data bacaan ('+g.label+')';
+      return 'Memuat foto';
+    },
     loadingGoogle(){return this.dataSource==='google'&&this.gSheets.some(x=>x.state==='loading')},
     allGoogleFailed(){return this.gSheets.every(x=>x.state==='error')},
     photoMap(){
@@ -518,7 +562,8 @@ Vue.createApp({
       if(this.photoState==='error')return 'Foto tidak tersedia: '+this.photoErr+'.';
       return 'Tidak ada foto untuk sesi ini (tanggal, kelas, dan lokasi).';
     },
-    dailyPages(){
+    dailyPages(){return this.dailyBuilder(this.shownRows)},
+    dailyBuilder(){return (shown)=>{
       const real=l=>{l=String(l==null?'':l).trim();return l&&l!=='-'?l:''};
       const mn=r=>String(r.murid||'').trim();
       // lokasi yang biasa dipakai tiap murid (per Ustadz), dari baris yang punya lokasi
@@ -529,7 +574,7 @@ Vue.createApp({
       const usual=new Map();
       cntLok.forEach((c,k)=>{const [uk,n,l]=k.split('|'),kk=uk+'|'+n,o=usual.get(kk);if(!o||c>o.c)usual.set(kk,{c,l})});
       const groups=new Map();
-      this.shownRows.forEach(r=>{
+      shown.forEach(r=>{
         const dk=dkey(r.tgl);if(!dk||!mn(r))return;
         const uk=normKelas(r.ustadz);let lok=real(r.lokasi),isReal=!!lok;
         if(!lok){const u=usual.get(uk+'|'+mn(r));if(u)lok=u.l}
@@ -588,9 +633,9 @@ Vue.createApp({
         const sumLine=cnt.baca===names.length?'':names.length+' murid: '+[cnt.baca&&cnt.baca+' membaca',cnt.hadir&&cnt.hadir+' hadir tanpa bacaan',cnt.sakit&&cnt.sakit+' sakit',cnt.kabar&&cnt.kabar+' tidak ada kabar',cnt.kosong&&cnt.kosong+' tanpa data'].filter(Boolean).join(', ')+'.';
         const ph=(this.photoMap[g.dk+'|'+kn]||[]).filter(p=>!p.lok||!g.ln||p.lok===g.ln).map(p=>p.id);
         const tgtDesc=[...new Map(cum.map(c=>[c.tgt.key,c.tgt])).values()].map(t=>t.name+' ('+t.total+' ayat)').join('; ');
-        return {key:g.key,kelas:g.kelas,lokasi:g.lokasi,jam:g.jam,dateLong:longDate(g.date),sub:longDate(g.date)+(g.jam?' \u00b7 Jam '+g.jam:'')+(g.lokasi?' \u00b7 Lokasi: '+g.lokasi:''),upto:longDate(g.date)+(g.jam?' pukul '+g.jam:''),items,sumLine,tgtDesc,cum,showPhotos:true,photoTitle:'Foto',photos:ph};
+        return {key:g.key,dk:g.dk,ln:g.ln,names,kelas:g.kelas,lokasi:g.lokasi,jam:g.jam,dateLong:longDate(g.date),sub:longDate(g.date)+(g.jam?' \u00b7 Jam '+g.jam:'')+(g.lokasi?' \u00b7 Lokasi: '+g.lokasi:''),upto:longDate(g.date)+(g.jam?' pukul '+g.jam:''),items,sumLine,tgtDesc,cum,showPhotos:true,photoTitle:'Foto',photos:ph};
       });
-    },
+    }},
     settingsIdx(){
       const cls=new Map(),byKelas=new Map(),sts=new Map();
       this.settings.classes.forEach(c=>{cls.set((c.batch||'')+'|'+normKelas(c.kelas),c);if(!byKelas.has(normKelas(c.kelas)))byKelas.set(normKelas(c.kelas),c)});
@@ -824,9 +869,11 @@ Vue.createApp({
     async reloadAll(first){
       if(!first){this.err='';this.note=''}
       this.dataSource='google';
-      await this.loadSettings();
-      await this.loadGoogleData();
-      await this.loadPhotos();
+      try{
+        await this.loadSettings();
+        await this.loadGoogleData();
+        await this.loadPhotos();
+      }finally{this.booting=false}
     },
     async loadPhotos(){
       this.photoState='loading';this.photoErr='';
@@ -877,15 +924,15 @@ Vue.createApp({
         XLSX.utils.book_append_sheet(wb,sheet(r,[6,22,18,13,13,12,16]),'Per Surat');
       }
       if(c.riwayat.length){
-        const r=[['Tanggal','Lokasi','Kegiatan','Rentang','Ayat Dalam Target','Nilai']];
-        c.riwayat.forEach(l=>r.push([dcell(l.tgl),l.lokasi||'-',l.jenis||'-',l.rentang,l.hadir?'-':l.cnt,l.nilai===''||l.nilai==null?'-':l.nilai]));
-        XLSX.utils.book_append_sheet(wb,sheet(r,[14,10,16,48,18,8]),'Riwayat');
+        const r=[['Tanggal','Jam','Lokasi','Kegiatan','Rentang','Ayat Dalam Target','Nilai']];
+        c.riwayat.forEach(l=>r.push([dcell(l.tgl),l.jam||'-',l.lokasi||'-',l.jenis||'-',l.rentang,l.hadir?'-':l.cnt,l.nilai===''||l.nilai==null?'-':l.nilai]));
+        XLSX.utils.book_append_sheet(wb,sheet(r,[14,8,10,16,48,18,8]),'Riwayat');
       }
       return wb;
     },
     fileKey(){return slug(this.tgtKey)+(this.batchPick.length?'-batch-'+slug(this.batchPick.join('-')):'')+(this.pick.length?'-filter-tanggal':'')},
     wMeta(title,target,o={}){
-      const c=[wP(title,{size:36,bold:true,after:60,pageBreakBefore:o.pageBreak}),wP('Sumber: '+this.src,{size:20,color:WMUTE,after:20}),wP('Target '+(target||this.tgtView.desc),{size:20,color:WMUTE,after:20})];
+      const c=[wP(title,{size:36,bold:true,after:60,pageBreakBefore:o.pageBreak,heading:1}),wP('Sumber: '+this.src,{size:20,color:WMUTE,after:20}),wP('Target '+(target||this.tgtView.desc),{size:20,color:WMUTE,after:20})];
       if(this.ustadzPick.length&&!o.noScope)c.push(wP('Ustadz: '+this.ustadzLabel+'.',{size:20,bold:true,after:20}));
       if(this.batchPick.length&&!o.noScope)c.push(wP('Batch: '+this.batchLabel+'.',{size:20,bold:true,after:20}));
       if(this.pick.length)c.push(wP([wRun('Tanggal: '+this.filterLabel+'. ',{size:20,bold:true}),wRun('Angka dihitung hanya dari bacaan pada tanggal tersebut.',{size:20,color:WMUTE})],{after:20}));
@@ -918,8 +965,8 @@ Vue.createApp({
       }
       if(c.riwayat.length){
         ch.push(wP('Riwayat Kegiatan',{size:26,bold:true,before:240,after:80,keepNext:true}));
-        ch.push(wTable([1500,900,1400,3906,1400,1100],['Tanggal','Lokasi','Kegiatan','Rentang','Ayat dalam target','Nilai'],
-          c.riwayat.map(l=>[this.fd(l.tgl),l.lokasi||'-',l.jenis||'-',l.rentang,l.hadir?'-':l.cnt,l.nilai===''||l.nilai==null?'-':l.nilai]),{right:[4,5]}));
+        ch.push(wTable([1500,1000,1400,3706,1600,1000],['Tanggal & Jam','Lokasi','Kegiatan','Rentang','Ayat dalam target','Nilai'],
+          c.riwayat.map(l=>[this.fd(l.tgl)+'\n'+(l.jam||'-'),l.lokasi||'-',l.jenis||'-',l.rentang,l.hadir?'-':l.cnt,l.nilai===''||l.nilai==null?'-':l.nilai]),{right:[4,5]}));
       }
       return wDoc(ch,false);
     },
@@ -935,8 +982,8 @@ Vue.createApp({
       const ch=[];
       pages.forEach((pg,i)=>{
         ch.push(new d.Paragraph({pageBreakBefore:i>0,alignment:d.AlignmentType.CENTER,spacing:{after:100},border:{bottom:{style:d.BorderStyle.SINGLE,size:8,color:'BFC9CF',space:4}},children:[new d.ImageRun({type:'png',data:logo.data,transformation:{width:lw,height:lh}})]}));
-        ch.push(wP('Laporan Harian'+(pg.kelas?' Kelas '+pg.kelas:''),{size:34,bold:true,before:120,after:40,center:true}));
-        ch.push(wP(pg.sub,{size:26,bold:true,after:40,center:true}));
+        ch.push(wP('Laporan Harian'+(pg.kelas?' Kelas '+pg.kelas:''),{size:34,bold:true,before:120,after:40,center:true,heading:1}));
+        ch.push(wP(pg.sub,{size:26,bold:true,after:40,center:true,heading:2}));
         if(pg.sumLine)ch.push(wP(pg.sumLine,{size:19,color:WMUTE,after:120,center:true}));
         ch.push(wTable([500,2100,1200,900,3106,1300,1100],['No','Murid','Kegiatan','Juz','Rentang bacaan','Jumlah ayat','Nilai'],
           pg.items.map(e=>({cells:[e.no,e.murid,e.jenis,e.juz,e.rentang,e.ayat,e.nilai],muted:e.none})),{right:[5,6],bold:[1]}));
@@ -989,6 +1036,15 @@ Vue.createApp({
       if(mode==='daily')await this.imagesReady();
       window.print();
     },
+    openSession(l){
+      const n=this.cur?this.cur.name:'',dk=dkey(l.tgl),ln=normKelas(l.lokasi==='-'?'':l.lokasi),jm=l.jam||'';
+      const ps=this.dailyBuilder(this.bRows).filter(p=>p.dk===dk&&p.names.includes(n));
+      this.sess=ps.find(x=>x.jam===jm&&x.ln===ln)||ps.find(x=>x.jam===jm)||ps.find(x=>x.ln===ln)||ps[0]||null;
+      this.sessStudent=n;this.sessOpen=true;
+      document.body.classList.add('sheetopen');
+      this.$nextTick(()=>{const b=document.querySelector('.sheet .sclose');if(b)b.focus()});
+    },
+    closeSession(){this.sessOpen=false;document.body.classList.remove('sheetopen')},
     onFile(e){this.load(e.target.files[0]);e.target.value=''},
     onDrop(e){this.load(e.dataTransfer.files[0])},
     tileBg(t){return 'background:linear-gradient(to top,var(--fill) '+t.pct+'%,var(--tile) '+t.pct+'%)'}
@@ -996,15 +1052,38 @@ Vue.createApp({
   template:`
 <div class="wrap" @dragover.prevent @drop.prevent="onDrop">
   <header>
-    <div>
-      <h1>Progress Bacaan {{cur?cur.name:tgtView.title}}</h1>
-      <p class="mute">Sumber: {{src}}</p>
-      <p class="mute">Target {{cur?studentTarget(cur):tgtView.desc}}<span v-if="ustadzPick.length">. Ustadz: {{ustadzLabel}}</span><span v-if="batchPick.length">. Batch: {{batchLabel}}</span></p>
-      <p class="mute noprint">Foto: {{photoStatus}} <button class="btn small" @click="loadPhotos">Muat ulang foto</button></p>
+    <div class="titlebox">
+      <h1 class="noprint">Kelas Beasiswa RTIY</h1>
+      <div class="loadbar noprint" v-if="loadingAny" role="progressbar" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="loadPct" aria-live="polite">
+        <div class="bar"><i :style="{width:Math.max(loadPct,4)+'%'}"></i></div>
+        <p class="mute">{{loadLabel}}... {{loadPct}}%</p>
+      </div>
     </div>
-    <div class="actions">
-      <div class="agroup"><label class="btn primary" title="Opsional: pakai file Excel sendiri sebagai pengganti data Google Sheet">Upload Excel (opsional)<input type="file" accept=".xlsx,.xls" hidden @change="onFile"></label></div>
-      <div class="agroup"><span class="alabel">Cetak</span>
+  </header>
+  <template v-if="!booting">
+  <details class="dbox srcbox">
+    <summary>Sumber Data</summary>
+    <div class="dbody">
+      <p class="mute">Sumber: <b>{{src}}</b></p>
+      <p class="mute" v-if="dataSource==='upload'">File Excel: <b>{{uploadName}}</b> (menggantikan data Google Sheet sampai Anda kembali ke Google Sheet).</p>
+      <p class="mute">Data Kelas: <b v-if="settings.state==='loading'">memuat...</b><b v-else-if="settings.state==='ok'">{{settings.classes.length}} kelas, {{settings.students.length}} murid</b><b v-else style="color:var(--err)">gagal ({{settings.err}})</b></p>
+      <p class="mute" v-if="dataSource!=='upload'">
+        <span v-for="(g,i) in gSheets" :key="i" style="display:inline-block;margin-right:14px">
+          {{g.label}}: <b v-if="g.state==='loading'">memuat...</b><b v-else-if="g.state==='ok'">{{g.n}} baris</b><b v-else style="color:var(--err)">gagal ({{g.err}})</b>
+        </span>
+      </p>
+      <p class="mute">Foto: {{photoStatus}}</p>
+      <div class="dbtns">
+        <button class="btn small" :disabled="loadingGoogle" @click="reloadAll()">{{dataSource==='upload'?'Gunakan data Google Sheet':'Muat ulang dari Google Sheet'}}</button>
+        <button class="btn small" @click="loadPhotos">Muat ulang foto</button>
+        <label class="btn small primary" title="Opsional: pakai file Excel sendiri sebagai pengganti data Google Sheet">Upload Excel (opsional)<input type="file" accept=".xlsx,.xls" hidden @change="onFile"></label>
+      </div>
+    </div>
+  </details>
+  <details class="dbox printbox">
+    <summary>Cetak &amp; Unduh (PDF, Word, Excel)</summary>
+    <div class="dbody">
+      <div class="agroup"><span class="alabel">Cetak (PDF)</span>
         <button class="btn" :disabled="!cur" @click="doPrint('detail')">Murid ini</button>
         <button class="btn" :disabled="!res.list.length" @click="doPrint('summary')">Ringkasan semua</button>
         <button class="btn" :disabled="!dailyPages.length" @click="doPrint('daily')" title="Cetak semua ringkasan per hari: satu halaman per tanggal dan kelas, lengkap dengan foto">Ringkasan per hari</button>
@@ -1019,7 +1098,7 @@ Vue.createApp({
         <button class="btn" :disabled="!res.list.length" @click="exportXlsx('summary')" title="Unduh data yang sama dengan Cetak ringkasan semua">Ringkasan semua</button>
       </div>
     </div>
-  </header>
+  </details>
   <p v-if="err" class="msg err">{{err}}</p>
   <p v-if="busy" class="msg">Menyiapkan file Word...</p>
   <p v-if="note&&!busy" class="msg">{{note}}</p>
@@ -1041,19 +1120,6 @@ Vue.createApp({
       </div>
     </div>
     <span class="mute tdesc">{{tgtView.desc}}</span>
-  </div>
-
-  <div class="srcbar">
-    <div class="fhead"><b>Sumber data</b>
-      <button class="btn small" :disabled="loadingGoogle" @click="reloadAll()">{{dataSource==='upload'?'Gunakan data Google Sheet':'Muat ulang dari Google Sheet'}}</button>
-    </div>
-    <p class="mute" v-if="dataSource==='upload'">File Excel: <b>{{uploadName}}</b> (menggantikan data Google Sheet sampai Anda kembali ke Google Sheet).</p>
-    <p class="mute">Data Kelas: <b v-if="settings.state==='loading'">memuat...</b><b v-else-if="settings.state==='ok'">{{settings.classes.length}} kelas, {{settings.students.length}} murid</b><b v-else style="color:var(--err)">gagal ({{settings.err}})</b></p>
-    <p class="mute" v-if="dataSource!=='upload'">
-      <span v-for="(g,i) in gSheets" :key="i" style="display:inline-block;margin-right:14px">
-        {{g.label}}: <b v-if="g.state==='loading'">memuat...</b><b v-else-if="g.state==='ok'">{{g.n}} baris</b><b v-else style="color:var(--err)">gagal ({{g.err}})</b>
-      </span>
-    </p>
   </div>
 
   <div v-if="!rows.length" class="msg empty">
@@ -1104,6 +1170,12 @@ Vue.createApp({
         <li v-if="!comboList.length" class="cnone">Tidak ada nama yang cocok.</li>
       </ul>
     </div>
+  </div>
+
+  <div class="studenthead" v-if="cur">
+    <h1>Progress Bacaan {{cur.name}}</h1>
+    <p class="mute srcprint">Sumber: {{src}}</p>
+    <p class="mute">Target {{studentTarget(cur)}}<span v-if="ustadzPick.length">. Ustadz: {{ustadzLabel}}</span><span v-if="batchPick.length">. Batch: {{batchLabel}}</span></p>
   </div>
 
   <section class="cmp" v-if="chartC">
@@ -1190,9 +1262,9 @@ Vue.createApp({
     <template v-if="cur.riwayat.length">
     <h2>Riwayat kegiatan</h2>
     <div class="tablewrap"><table>
-      <thead><tr><th>Tanggal</th><th>Lokasi</th><th>Kegiatan</th><th>Rentang</th><th>Ayat dalam target</th><th>Nilai</th></tr></thead>
+      <thead><tr><th>Tanggal &amp; Jam</th><th>Lokasi</th><th>Kegiatan</th><th>Rentang</th><th>Ayat dalam target</th><th>Nilai</th></tr></thead>
       <tbody><tr v-for="(l,i) in cur.riwayat" :key="i">
-        <td>{{fd(l.tgl)}}</td><td>{{l.lokasi}}</td><td>{{l.jenis}}</td><td>{{l.rentang}}</td><td>{{l.hadir?'-':l.cnt}}</td><td>{{l.nilai===''?'-':l.nilai}}</td>
+        <td class="wkt link" tabindex="0" role="button" title="Lihat sesi kelas" @click="openSession(l)" @keydown.enter.prevent="openSession(l)" @keydown.space.prevent="openSession(l)">{{fd(l.tgl)}}<br>{{l.jam||'-'}}</td><td>{{l.lokasi||'-'}}</td><td>{{l.jenis}}</td><td>{{l.rentang}}</td><td class="num">{{l.hadir?'-':l.cnt}}</td><td class="num">{{l.nilai===''?'-':l.nilai}}</td>
       </tr></tbody>
     </table></div>
     </template>
@@ -1264,6 +1336,45 @@ Vue.createApp({
   </section>
 
   <p class="hint">Data utama dibaca otomatis dari dua Google Sheet (sheet log_bacaan_quran). Anda juga bisa upload file .xlsx dengan sheet log_bacaan_quran, atau seret file ke halaman ini, untuk menggantikannya. Target bisa dipilih per juz atau seluruh Al-Qur'an; bacaan di luar target tidak dihitung. Ayat mulai kosong dihitung 1, ayat selesai kosong dihitung ayat terakhir surat. Bacaan ulang tidak menambah persentase. Murid yang belum punya baris log tidak muncul. Kegiatan Kehadiran menandai murid ikut serta tanpa bacaan: dihitung sebagai hadir dan tidak mengubah progress. Filter tanggal hanya menampilkan tanggal yang ada kegiatannya, dan cetak mengikuti filter. Tombol Word dan Excel mengunduh data yang sama dengan tombol Cetak (target dan filter tanggal ikut). File diproses di browser Anda dan tidak dikirim ke server.</p>
+  <div class="sheetwrap noprint" v-if="sessOpen" @click.self="closeSession">
+    <div class="sheet" role="dialog" aria-modal="true" aria-label="Sesi kelas">
+      <div class="shandle" aria-hidden="true"></div>
+      <button class="btn small sclose" @click="closeSession">Tutup</button>
+      <article class="day sheetday" v-if="sess">
+        <h1>Laporan Harian{{sess.kelas?' Kelas '+sess.kelas:''}}</h1>
+        <p class="daydate"><b>{{sess.sub}}</b></p>
+        <p class="daysum" v-if="sess.sumLine">{{sess.sumLine}}</p>
+        <div class="tablewrap"><table class="daytable">
+          <colgroup><col style="width:5%"><col style="width:22%"><col style="width:14%"><col style="width:9%"><col style="width:30%"><col style="width:11%"><col style="width:9%"></colgroup>
+          <thead><tr><th>No</th><th>Murid</th><th>Kegiatan</th><th>Juz</th><th>Rentang bacaan</th><th class="num">Jumlah ayat</th><th class="num">Nilai</th></tr></thead>
+          <tbody><tr v-for="(e,i) in sess.items" :key="i" :class="{none:e.none,abs:e.status==='abs'}">
+            <td>{{e.no}}</td><td><b>{{e.murid}}</b></td><td>{{e.jenis}}</td><td>{{e.juz}}</td><td>{{e.rentang}}</td><td class="num">{{e.ayat}}</td><td class="num">{{e.nilai}}</td>
+          </tr></tbody>
+        </table></div>
+        <h2>Progress Bacaan Akumulatif</h2>
+        <p class="mute" style="margin:0 0 6px">Dihitung dari awal data sampai {{sess.upto}}. Target {{sess.tgtDesc}}.</p>
+        <div class="tablewrap"><table class="sumtable">
+          <colgroup><col style="width:26%"><col style="width:16%"><col style="width:22%"><col style="width:15%"><col style="width:21%"></colgroup>
+          <thead><tr><th>Murid</th><th class="num">Ayat terbaca</th><th>Progress</th><th class="num">Surat tuntas</th><th class="num">Surat sebagian</th></tr></thead>
+          <tbody><tr v-for="c in sess.cum" :key="c.name">
+            <td><b>{{c.name}}</b></td><td class="num">{{c.total}} / {{c.tgt.total}}</td>
+            <td><div class="pbar"><div class="bar"><i :style="{width:c.pct+'%'}"></i></div><span>{{c.pct}}%</span></div></td>
+            <td class="num">{{c.tuntas}} / {{c.tgt.nSeg}}</td><td class="num">{{c.parsial}}</td>
+          </tr></tbody>
+        </table></div>
+        <h2>Foto</h2>
+        <div class="photos" :class="{one:sess.photos.length===1}" v-if="sess.photos.length">
+          <figure v-for="u in sess.photos" :key="u">
+            <img v-if="!badImg[u]" :src="'https://drive.google.com/thumbnail?id='+u+'&sz=w1200'" referrerpolicy="no-referrer" alt="Foto" @error="badImg[u]=true">
+            <p v-else class="imgfail">Foto tidak dapat dimuat. Pastikan file di Google Drive dibagikan ke "siapa saja dengan link".</p>
+          </figure>
+        </div>
+        <p v-else class="mute">{{photoNote}}</p>
+      </article>
+      <p v-else class="msg">Sesi kelas untuk baris ini tidak ditemukan.</p>
+    </div>
+  </div>
+  </template>
 </div>`
 }).mount('#app');
 window.addEventListener('afterprint',()=>{delete document.body.dataset.print});
