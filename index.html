@@ -16,6 +16,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-app
 h1,h2,.big{font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif}
 .wrap{max-width:1000px;margin:0 auto;padding:20px 16px 48px}
 header{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:flex-end;margin-bottom:16px}
+h1,h2,th,.chart figcaption{text-transform:capitalize}
 h1{font-size:26px;line-height:1.2;margin:0}
 h2{font-size:19px;margin:24px 0 10px}
 .mute{color:var(--mute);margin:2px 0 0;font-size:13px}
@@ -65,7 +66,7 @@ h2{font-size:19px;margin:24px 0 10px}
 .tablewrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:10px}
 table{border-collapse:collapse;width:100%;font-size:13.5px}
 th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
-th{color:var(--mute);font-weight:600}
+th{color:var(--mute);font-weight:600;text-align:center!important}
 tr:last-child td{border-bottom:0}
 .hint{margin-top:18px;font-size:13px;color:var(--mute)}
 .srcbar{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin:0 0 12px}
@@ -127,8 +128,8 @@ tr:last-child td{border-bottom:0}
 .daytable tr.none td{color:var(--mute)}
 .photos{display:grid;grid-template-columns:1fr;gap:12px}
 .photos.one{grid-template-columns:1fr}
-.photos figure{margin:0}
-.photos img{display:block;width:100%;max-height:130mm;object-fit:contain;border:1px solid var(--line);border-radius:6px;background:#f2f2f2}
+.photos figure{margin:0;text-align:center}
+.photos img{display:block;margin:0 auto;width:auto;max-width:100%;max-height:130mm;object-fit:contain;border:1px solid var(--line);border-radius:6px;background:#f2f2f2}
 .photos figcaption{font-size:12px;color:var(--mute);margin-top:2px}
 .imgfail{border:1px dashed var(--line);border-radius:6px;padding:14px;font-size:12px;color:var(--mute);margin:0}
 @page{margin:14mm}
@@ -263,6 +264,21 @@ function analyze(rows,names,tgtArg){
 }
 
 const dkey=d=>d instanceof Date&&!isNaN(d)?d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'):null;
+const pad2=n=>String(n).padStart(2,'0');
+function jamNorm(v,f){
+  const hm=(h,m)=>(h>=0&&h<24&&m>=0&&m<60)?pad2(h)+':'+pad2(m):'';
+  if(Array.isArray(v))return hm(+v[0],+v[1]||0);
+  if(v instanceof Date&&!isNaN(v))return hm(v.getHours(),v.getMinutes());
+  if(typeof v==='number'&&isFinite(v)){const t=Math.round((v%1)*1440);return hm(Math.floor(t/60)%24,t%60)}
+  let m=/^Date\(\d+,\s*\d+,\s*\d+,\s*(\d+),\s*(\d+)/.exec(String(v==null?'':v));
+  if(m)return hm(+m[1],+m[2]);
+  const t=String(f!=null&&f!==''?f:(v==null?'':v)).trim();
+  m=/(\d{1,2})[:.](\d{2})(?::\d{2})?\s*([ap]m)?/i.exec(t);
+  if(!m)return '';
+  let h=+m[1];if(m[3]){const pm=/p/i.test(m[3]);if(pm&&h<12)h+=12;if(!pm&&h===12)h=0}
+  return hm(h,+m[2]);
+}
+const tc=t=>String(t).replace(/(^|\s)(\S)/g,(a,b,c)=>b+c.toUpperCase());
 function toDate(v){
   if(typeof v==='number'&&isFinite(v)){const c=XLSX.SSF.parse_date_code(v);return c?new Date(c.y,c.m-1,c.d):v}
   const t=String(v==null?'':v).trim();
@@ -275,7 +291,7 @@ function readRows(buf){
   const ws=wb.Sheets['log_bacaan_quran'];
   if(!ws)throw new Error('Sheet "log_bacaan_quran" tidak ditemukan. Sheet yang ada: '+wb.SheetNames.join(', ')+'.');
   const g=(o,k)=>{const key=Object.keys(o).find(x=>x.trim().toLowerCase()===k);return key?o[key]:''};
-  return XLSX.utils.sheet_to_json(ws,{defval:''}).map((o,i)=>({ln:i+2,batch:String(g(o,'batch')==null?'':g(o,'batch')).trim(),ustadz:String(g(o,'ustadz')||'').trim(),tgl:toDate(g(o,'tgl')),murid:g(o,'murid'),lokasi:g(o,'lokasi'),jenis:g(o,'jenis kegiatan'),sm:g(o,'surat mulai'),am:g(o,'ayat mulai'),ss:g(o,'surat selesai'),ae:g(o,'ayat selesai'),nilai:g(o,'nilai')}))
+  return XLSX.utils.sheet_to_json(ws,{defval:''}).map((o,i)=>({ln:i+2,batch:String(g(o,'batch')==null?'':g(o,'batch')).trim(),ustadz:String(g(o,'ustadz')||'').trim(),tgl:toDate(g(o,'tgl')),murid:g(o,'murid'),lokasi:g(o,'lokasi'),jam:jamNorm(g(o,'jam')),jenis:g(o,'jenis kegiatan'),sm:g(o,'surat mulai'),am:g(o,'ayat mulai'),ss:g(o,'surat selesai'),ae:g(o,'ayat selesai'),nilai:g(o,'nilai')}))
    .filter(r=>String(r.murid).trim());
 }
 
@@ -384,7 +400,7 @@ function parseLogResponse(o){
   return o.table.rows.map((r,i)=>{
     const c=r.c||[],murid=str(c,'murid');
     if(!murid)return null;
-    return {ln:i+2,batch:str(c,'batch'),ustadz:str(c,'ustadz'),tgl:logDate(cell(c,'tgl')),murid,lokasi:str(c,'lokasi'),jenis:str(c,'jenis kegiatan'),
+    return {ln:i+2,batch:str(c,'batch'),ustadz:str(c,'ustadz'),tgl:logDate(cell(c,'tgl')),murid,lokasi:str(c,'lokasi'),jam:(()=>{const x=cell(c,'jam');return x?jamNorm(x.v,x.f):''})(),jenis:str(c,'jenis kegiatan'),
       sm:str(c,'surat mulai'),am:val(c,'ayat mulai'),ss:str(c,'surat selesai'),ae:val(c,'ayat selesai'),nilai:val(c,'nilai')};
   }).filter(Boolean);
 }
@@ -432,7 +448,7 @@ function wCell(t,w,o={}){
   return new d.TableCell({width:{size:w,type:d.WidthType.DXA},
     shading:o.head?{fill:WHEAD,type:d.ShadingType.CLEAR,color:'auto'}:undefined,
     margins:{top:50,bottom:50,left:90,right:90},
-    children:[new d.Paragraph({alignment:o.right?d.AlignmentType.RIGHT:d.AlignmentType.LEFT,spacing:{after:0},children:[wRun(t,{bold:o.head||o.bold,size:19,color:o.color})]})]});
+    children:[new d.Paragraph({alignment:o.head?d.AlignmentType.CENTER:o.right?d.AlignmentType.RIGHT:d.AlignmentType.LEFT,spacing:{after:0},children:[wRun(o.head?tc(t):t,{bold:o.head||o.bold,size:19,color:o.color})]})]});
 }
 function wTable(widths,header,rows,o={}){
   const d=docx,right=new Set(o.right||[]),bold=new Set(o.bold||[]);
@@ -466,8 +482,8 @@ function wPhotoParas(id,k,img,maxW,maxH){
   const d=docx;
   if(!img)return [new d.Paragraph({spacing:{after:40},children:[new d.ExternalHyperlink({link:driveView(id),children:[new d.TextRun({text:'Foto '+(k+1)+' tidak dapat ditanam. Buka di Google Drive',size:19,font:WFONT,color:'0563C1',underline:{}})]})]})];
   const sc=Math.min(maxW/img.w,maxH/img.h,1);
-  return [new d.Paragraph({spacing:{after:20},children:[new d.ImageRun({type:'png',data:img.data,transformation:{width:Math.round(img.w*sc),height:Math.round(img.h*sc)}})]}),
-          wP('Foto '+(k+1),{size:18,color:WMUTE,after:60})];
+  return [new d.Paragraph({alignment:d.AlignmentType.CENTER,spacing:{after:80},children:[new d.ImageRun({type:'png',data:img.data,transformation:{width:Math.round(img.w*sc),height:Math.round(img.h*sc)}})]}),
+          ];
 }
 function wDoc(children,landscape,vm){
   const d=docx;
@@ -517,8 +533,8 @@ Vue.createApp({
         const dk=dkey(r.tgl);if(!dk||!mn(r))return;
         const uk=normKelas(r.ustadz);let lok=real(r.lokasi),isReal=!!lok;
         if(!lok){const u=usual.get(uk+'|'+mn(r));if(u)lok=u.l}
-        const ln=normKelas(lok),k=dk+'|'+uk+'|'+ln;
-        let g=groups.get(k);if(!g){g={key:k,dk,uk,ln,date:r.tgl,kelas:r.ustadz||'',lokasi:'',real:false,rows:[]};groups.set(k,g)}
+        const ln=normKelas(lok),jm=r.jam||'',k=dk+'|'+uk+'|'+ln+'|'+jm;
+        let g=groups.get(k);if(!g){g={key:k,dk,uk,ln,jam:jm,date:r.tgl,kelas:r.ustadz||'',lokasi:'',real:false,rows:[]};groups.set(k,g)}
         if(isReal&&!g.lokasi)g.lokasi=real(r.lokasi);
         if(isReal)g.real=true;
         g.rows.push(r);
@@ -529,9 +545,15 @@ Vue.createApp({
         const t=[...groups.values()].filter(x=>x!==g&&x.dk===g.dk&&x.uk===g.uk&&x.real).sort((a,b)=>a.ln<b.ln?-1:1)[0];
         if(t){t.rows.push(...g.rows);groups.delete(g.key)}
       });
+      // baris tanpa jam: gabungkan ke sesi berjam pada hari/Ustadz/lokasi yang sama (jika ada)
+      [...groups.values()].forEach(g=>{
+        if(g.jam)return;
+        const t=[...groups.values()].filter(x=>x!==g&&x.dk===g.dk&&x.uk===g.uk&&x.ln===g.ln&&x.jam).sort((a,b)=>a.jam<b.jam?-1:1)[0];
+        if(t){t.rows.push(...g.rows);if(g.real)t.real=true;groups.delete(g.key)}
+      });
       const byDay=new Map();
       groups.forEach(g=>{const k=g.dk+'|'+g.uk;(byDay.get(k)||byDay.set(k,[]).get(k)).push(g)});
-      return [...groups.values()].sort((a,b)=>a.dk<b.dk?-1:a.dk>b.dk?1:(a.uk<b.uk?-1:a.uk>b.uk?1:(a.ln<b.ln?-1:1))).map(g=>{
+      return [...groups.values()].sort((a,b)=>a.dk<b.dk?-1:a.dk>b.dk?1:(a.uk<b.uk?-1:a.uk>b.uk?1:(a.jam<b.jam?-1:a.jam>b.jam?1:(a.ln<b.ln?-1:1)))).map(g=>{
         const kn=g.uk;
         const placed=new Set([...cntLok.keys()].map(k=>{const p=k.split('|');return p[0]+'|'+p[1]}));
         const unplaced=kn?this.vStudents.filter(x=>normKelas(x.kelas)===kn&&!placed.has(kn+'|'+x.name)).map(x=>x.name):[];
@@ -555,7 +577,7 @@ Vue.createApp({
           });
         });
         const nameSet=new Set(names);
-        const cum=analyze(this.bRows.filter(r=>{const k=dkey(r.tgl);return k&&k<=g.dk&&nameSet.has(String(r.murid||'').trim())}),names,this.tgtOf).list;
+        const cum=analyze(this.bRows.filter(r=>{const k=dkey(r.tgl);return k&&(k<g.dk||(k===g.dk&&(r.jam||'')<=(g.jam||'')))&&nameSet.has(String(r.murid||'').trim())}),names,this.tgtOf).list;
         const cnt={baca:0,hadir:0,sakit:0,kabar:0,kosong:0};
         names.forEach(n=>{const rs=g.rows.filter(r=>String(r.murid).trim()===n);
           if(!rs.length){cnt.kosong++;return}
@@ -566,7 +588,7 @@ Vue.createApp({
         const sumLine=cnt.baca===names.length?'':names.length+' murid: '+[cnt.baca&&cnt.baca+' membaca',cnt.hadir&&cnt.hadir+' hadir tanpa bacaan',cnt.sakit&&cnt.sakit+' sakit',cnt.kabar&&cnt.kabar+' tidak ada kabar',cnt.kosong&&cnt.kosong+' tanpa data'].filter(Boolean).join(', ')+'.';
         const ph=(this.photoMap[g.dk+'|'+kn]||[]).filter(p=>!p.lok||!g.ln||p.lok===g.ln).map(p=>p.id);
         const tgtDesc=[...new Map(cum.map(c=>[c.tgt.key,c.tgt])).values()].map(t=>t.name+' ('+t.total+' ayat)').join('; ');
-        return {key:g.key,kelas:g.kelas,lokasi:g.lokasi,dateLong:longDate(g.date),items,sumLine,tgtDesc,cum,showPhotos:true,photoTitle:/zoom/i.test(g.lokasi)||!g.lokasi?'Foto Zoom':'Foto Screenshot',photos:ph};
+        return {key:g.key,kelas:g.kelas,lokasi:g.lokasi,jam:g.jam,dateLong:longDate(g.date),sub:longDate(g.date)+(g.jam?' \u00b7 Jam '+g.jam:'')+(g.lokasi?' \u00b7 Lokasi: '+g.lokasi:''),upto:longDate(g.date)+(g.jam?' pukul '+g.jam:''),items,sumLine,tgtDesc,cum,showPhotos:true,photoTitle:'Foto',photos:ph};
       });
     },
     settingsIdx(){
@@ -645,7 +667,7 @@ Vue.createApp({
         const ts=[...new Map(o.list.map(x=>[x.tgt.key,x.tgt])).values()];
         const td=ts.map(t=>t.name+' ('+t.total+' ayat)').join('; ');
         const L=o.list;
-        return {key:o.key,label,title:label?'Ringkasan Progress Bacaan '+label:'Ringkasan progress bacaan '+this.tgtView.title,
+        return {key:o.key,label,title:label?'Ringkasan Progress Bacaan '+label:'Ringkasan Progress Bacaan '+tc(this.tgtView.title),
           tgtDesc:label?(o.kelas?o.kelas+': ':'')+td:this.tgtView.desc,list:L,
           avg:L.length?Math.round(L.reduce((a,x)=>a+x.pct,0)/L.length*10)/10:0,
           hadir:L.filter(x=>x.hadir).length,active:L.filter(x=>x.log.length).length};
@@ -654,7 +676,7 @@ Vue.createApp({
     settingsOn(){return this.targetMode==='settings'&&this.settings.state==='ok'},
     tgtView(){
       if(!this.settingsOn){
-        const t=this.tgt,pre=this.targetMode==='settings'?(this.settings.state==='loading'?'App Settings masih dimuat, sementara memakai ':'App Settings gagal dimuat'+(this.settings.err?' ('+this.settings.err+')':'')+', memakai '):'';
+        const t=this.tgt,pre=this.targetMode==='settings'?(this.settings.state==='loading'?'Data Kelas masih dimuat, sementara memakai ':'Data Kelas gagal dimuat'+(this.settings.err?' ('+this.settings.err+')':'')+', memakai '):'';
         return {title:t.title,desc:pre+t.desc};
       }
       const g=new Map();
@@ -663,9 +685,9 @@ Vue.createApp({
         if(!g.has(k))g.set(k,{kelas,t:x.tgt});
       });
       const parts=[...g.values()].sort((a,b)=>a.kelas.localeCompare(b.kelas)).map(o=>o.kelas+': '+o.t.name+' ('+o.t.total+' ayat)');
-      return {title:'sesuai App Settings',desc:parts.join('; ')||'sesuai App Settings'};
+      return {title:'sesuai Data Kelas',desc:parts.join('; ')||'sesuai Data Kelas'};
     },
-    tgtKey(){return this.settingsOn?'target-app-settings':this.tgt.key},
+    tgtKey(){return this.settingsOn?'target-data-kelas':this.tgt.key},
 
     avgPct(){const l=this.res.list;return l.length?Math.round(l.reduce((a,x)=>a+x.pct,0)/l.length*10)/10:0},
     trend(){
@@ -752,7 +774,7 @@ Vue.createApp({
     studentTarget(c){
       if(!this.settingsOn)return this.tgtView.desc;
       const x=this.studentIdx.get(normKelas(c.name)),info=x&&x.kelas?[x.kelas,x.batch?'Batch '+x.batch:''].filter(Boolean).join(', '):'';
-      return 'sesuai App Settings'+(info?' ('+info+')':'')+': '+c.tgt.desc;
+      return 'sesuai Data Kelas'+(info?' ('+info+')':'')+': '+c.tgt.desc;
     },
     absText(x){const a=x.absen&&x.absen[0];return a?a.absen+(x.absen.length>1?' ('+x.absen.length+'x)':''):''},
     noLogText(x){return x.hadir?'Hadir, tanpa bacaan':(this.absText(x)||(this.pick.length?'Tidak ada setoran':'-'))},
@@ -828,7 +850,7 @@ Vue.createApp({
       const wb=XLSX.utils.book_new(),used=new Set(),G=this.summaryGroups;
       G.forEach((gr,i)=>{
         const rows=this.metaRows(gr.title,gr.tgtDesc);
-        rows.push(['Murid','Ayat terbaca','Target (ayat)','Progress (%)','Surat tuntas','Surat dalam target','Surat sebagian','Setoran','Hadir (tanggal)','Setoran terakhir','Target']);
+        rows.push(['Murid','Ayat Terbaca','Target (Ayat)','Progress (%)','Surat Tuntas','Surat Dalam Target','Surat Sebagian','Setoran','Hadir (Tanggal)','Setoran Terakhir','Target']);
         gr.list.forEach(x=>rows.push([x.name,x.total,x.tgt.total,x.pct,x.tuntas,x.tgt.nSeg,x.parsial,x.log.length,x.hadir,
           x.log.length?dcell(x.last):this.noLogText(x),x.tgt.name]));
         rows.push([]);
@@ -844,18 +866,18 @@ Vue.createApp({
     },
     wbStudent(){
       const c=this.cur,t=c.tgt;
-      const rows=this.metaRows('Progress bacaan '+c.name,this.studentTarget(c));
+      const rows=this.metaRows('Progress Bacaan '+c.name,this.studentTarget(c));
       rows.push(['Ayat terbaca',c.total],['Target (ayat)',t.total],['Progress (%)',c.pct],['Surat tuntas',c.tuntas],['Surat dalam target',t.nSeg],['Surat sebagian',c.parsial],['Setoran',c.log.length],['Tanggal hadir',c.hadir],['Setoran terakhir',c.log.length?dcell(c.last):'-']);
       if(!c.log.length)rows.push(['Keterangan',this.emptyMsg(c)]);
       const wb=XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb,sheet(rows,[26,60]),'Ringkasan');
       if(c.log.length){
-        const r=[['No','Surat','Ayat dalam target','Ayat terbaca','Progress (%)','Status','Bagian ayat']];
+        const r=[['No','Surat','Ayat Dalam Target','Ayat Terbaca','Progress (%)','Status','Bagian Ayat']];
         c.surat.forEach(x=>r.push([x.no,x.name,x.ayat,x.got,x.pct,x.got===x.ayat?'Tuntas':(x.got>0?'Sebagian':'Belum'),x.part?x.segText:'Seluruh surat']));
         XLSX.utils.book_append_sheet(wb,sheet(r,[6,22,18,13,13,12,16]),'Per Surat');
       }
       if(c.riwayat.length){
-        const r=[['Tanggal','Lokasi','Kegiatan','Rentang','Ayat dalam target','Nilai']];
+        const r=[['Tanggal','Lokasi','Kegiatan','Rentang','Ayat Dalam Target','Nilai']];
         c.riwayat.forEach(l=>r.push([dcell(l.tgl),l.lokasi||'-',l.jenis||'-',l.rentang,l.hadir?'-':l.cnt,l.nilai===''||l.nilai==null?'-':l.nilai]));
         XLSX.utils.book_append_sheet(wb,sheet(r,[14,10,16,48,18,8]),'Riwayat');
       }
@@ -883,19 +905,19 @@ Vue.createApp({
     },
     docStudent(){
       const c=this.cur,t=c.tgt;
-      const ch=this.wMeta('Progress bacaan '+c.name,this.studentTarget(c));
+      const ch=this.wMeta('Progress Bacaan '+c.name,this.studentTarget(c));
       ch.push(wP('',{after:60}));
       ch.push(wTable([3400,6806],null,[
         ['Progress',c.pct+'%  ('+c.total+' dari '+t.total+' ayat)'],['Surat tuntas',c.tuntas+' dari '+t.nSeg],['Surat baru sebagian',String(c.parsial)],
         ['Setoran',c.log.length+(c.log.length?' (terakhir '+this.fd(c.last)+')':'')],['Tanggal hadir',String(c.hadir)]],{bold:[0]}));
       if(!c.log.length)ch.push(wP(this.emptyMsg(c),{before:160,color:WMUTE}));
       else{
-        ch.push(wP('Per surat',{size:26,bold:true,before:240,after:80,keepNext:true}));
+        ch.push(wP('Per Surat',{size:26,bold:true,before:240,after:80,keepNext:true}));
         ch.push(wTable([2900,1500,1300,1500,3006],['Surat','Ayat terbaca','Progress','Status','Keterangan'],
           c.surat.map(x=>[x.no+'. '+x.name,x.got+'/'+x.ayat,x.pct+'%',x.got===x.ayat?'Tuntas':(x.got>0?'Sebagian':'Belum'),x.part?'ayat '+x.segText:'']),{right:[1,2]}));
       }
       if(c.riwayat.length){
-        ch.push(wP('Riwayat kegiatan',{size:26,bold:true,before:240,after:80,keepNext:true}));
+        ch.push(wP('Riwayat Kegiatan',{size:26,bold:true,before:240,after:80,keepNext:true}));
         ch.push(wTable([1500,900,1400,3906,1400,1100],['Tanggal','Lokasi','Kegiatan','Rentang','Ayat dalam target','Nilai'],
           c.riwayat.map(l=>[this.fd(l.tgl),l.lokasi||'-',l.jenis||'-',l.rentang,l.hadir?'-':l.cnt,l.nilai===''||l.nilai==null?'-':l.nilai]),{right:[4,5]}));
       }
@@ -913,13 +935,13 @@ Vue.createApp({
       const ch=[];
       pages.forEach((pg,i)=>{
         ch.push(new d.Paragraph({pageBreakBefore:i>0,alignment:d.AlignmentType.CENTER,spacing:{after:100},border:{bottom:{style:d.BorderStyle.SINGLE,size:8,color:'BFC9CF',space:4}},children:[new d.ImageRun({type:'png',data:logo.data,transformation:{width:lw,height:lh}})]}));
-        ch.push(wP('Laporan harian'+(pg.kelas?' kelas '+pg.kelas:''),{size:34,bold:true,before:120,after:40,center:true}));
-        ch.push(wP(pg.dateLong+(pg.lokasi?' \u00b7 Lokasi: '+pg.lokasi:''),{size:26,bold:true,after:40,center:true}));
+        ch.push(wP('Laporan Harian'+(pg.kelas?' Kelas '+pg.kelas:''),{size:34,bold:true,before:120,after:40,center:true}));
+        ch.push(wP(pg.sub,{size:26,bold:true,after:40,center:true}));
         if(pg.sumLine)ch.push(wP(pg.sumLine,{size:19,color:WMUTE,after:120,center:true}));
         ch.push(wTable([500,2100,1200,900,3106,1300,1100],['No','Murid','Kegiatan','Juz','Rentang bacaan','Jumlah ayat','Nilai'],
           pg.items.map(e=>({cells:[e.no,e.murid,e.jenis,e.juz,e.rentang,e.ayat,e.nilai],muted:e.none})),{right:[5,6],bold:[1]}));
-        ch.push(wP('Progress bacaan akumulatif',{size:26,bold:true,before:240,after:40,keepNext:true}));
-        ch.push(wP('Dihitung dari awal data sampai '+pg.dateLong+' (semua tanggal, tidak terpengaruh filter tanggal). Target '+pg.tgtDesc+'.',{color:WMUTE,size:18,after:80,keepNext:true}));
+        ch.push(wP('Progress Bacaan Akumulatif',{size:26,bold:true,before:240,after:40,keepNext:true}));
+        ch.push(wP('Dihitung dari awal data sampai '+pg.upto+' (semua tanggal, tidak terpengaruh filter tanggal). Target '+pg.tgtDesc+'.',{color:WMUTE,size:18,after:80,keepNext:true}));
         ch.push(wTable([3300,2000,1700,1600,1606],['Murid','Ayat terbaca','Progress','Surat tuntas','Surat sebagian'],
           pg.cum.map(x=>[x.name,x.total+' / '+x.tgt.total,x.pct+'%',x.tuntas+' / '+x.tgt.nSeg,x.parsial]),{right:[1,2,3,4],bold:[0]}));
         if(!pg.showPhotos)return;
@@ -975,7 +997,7 @@ Vue.createApp({
 <div class="wrap" @dragover.prevent @drop.prevent="onDrop">
   <header>
     <div>
-      <h1>Progress bacaan {{cur?cur.name:tgtView.title}}</h1>
+      <h1>Progress Bacaan {{cur?cur.name:tgtView.title}}</h1>
       <p class="mute">Sumber: {{src}}</p>
       <p class="mute">Target {{cur?studentTarget(cur):tgtView.desc}}<span v-if="ustadzPick.length">. Ustadz: {{ustadzLabel}}</span><span v-if="batchPick.length">. Batch: {{batchLabel}}</span></p>
       <p class="mute noprint">Foto: {{photoStatus}} <button class="btn small" @click="loadPhotos">Muat ulang foto</button></p>
@@ -1005,7 +1027,7 @@ Vue.createApp({
   <div class="targetbar">
     <label for="tmode"><b>Target progress</b></label>
     <select id="tmode" v-model="targetMode">
-      <option value="settings">Sesuai App Settings (target per kelas)</option>
+      <option value="settings">Sesuai Data Kelas (target per kelas)</option>
       <option value="all">Semua surat (1 kitab, 6.236 ayat)</option>
       <option value="juz">Juz tertentu</option>
     </select>
@@ -1026,7 +1048,7 @@ Vue.createApp({
       <button class="btn small" :disabled="loadingGoogle" @click="reloadAll()">{{dataSource==='upload'?'Gunakan data Google Sheet':'Muat ulang dari Google Sheet'}}</button>
     </div>
     <p class="mute" v-if="dataSource==='upload'">File Excel: <b>{{uploadName}}</b> (menggantikan data Google Sheet sampai Anda kembali ke Google Sheet).</p>
-    <p class="mute">App Settings: <b v-if="settings.state==='loading'">memuat...</b><b v-else-if="settings.state==='ok'">{{settings.classes.length}} kelas, {{settings.students.length}} murid</b><b v-else style="color:var(--err)">gagal ({{settings.err}})</b></p>
+    <p class="mute">Data Kelas: <b v-if="settings.state==='loading'">memuat...</b><b v-else-if="settings.state==='ok'">{{settings.classes.length}} kelas, {{settings.students.length}} murid</b><b v-else style="color:var(--err)">gagal ({{settings.err}})</b></p>
     <p class="mute" v-if="dataSource!=='upload'">
       <span v-for="(g,i) in gSheets" :key="i" style="display:inline-block;margin-right:14px">
         {{g.label}}: <b v-if="g.state==='loading'">memuat...</b><b v-else-if="g.state==='ok'">{{g.n}} baris</b><b v-else style="color:var(--err)">gagal ({{g.err}})</b>
@@ -1202,8 +1224,8 @@ Vue.createApp({
   <section class="daily-print" v-if="dailyPages.length">
     <article class="day" v-for="pg in dailyPages" :key="pg.key">
       <div class="dayhead"><img :src="logoSrc" @error="logoSrc=logoData" alt="Yasmanti Foundation"></div>
-      <h1>Laporan harian{{pg.kelas?' kelas '+pg.kelas:''}}</h1>
-      <p class="daydate"><b>{{pg.dateLong}}</b><b v-if="pg.lokasi"> &middot; Lokasi: {{pg.lokasi}}</b></p>
+      <h1>Laporan Harian{{pg.kelas?' Kelas '+pg.kelas:''}}</h1>
+      <p class="daydate"><b>{{pg.sub}}</b></p>
       <p class="daysum" v-if="pg.sumLine">{{pg.sumLine}}</p>
       <div class="tablewrap"><table class="daytable">
         <colgroup><col style="width:5%"><col style="width:22%"><col style="width:14%"><col style="width:9%"><col style="width:30%"><col style="width:11%"><col style="width:9%"></colgroup>
@@ -1212,8 +1234,8 @@ Vue.createApp({
           <td>{{e.no}}</td><td><b>{{e.murid}}</b></td><td>{{e.jenis}}</td><td>{{e.juz}}</td><td>{{e.rentang}}</td><td class="num">{{e.ayat}}</td><td class="num">{{e.nilai}}</td>
         </tr></tbody>
       </table></div>
-      <h2>Progress bacaan akumulatif</h2>
-      <p class="mute" style="margin:0 0 6px">Dihitung dari awal data sampai {{pg.dateLong}} (semua tanggal, tidak terpengaruh filter tanggal). Target {{pg.tgtDesc}}.</p>
+      <h2>Progress Bacaan Akumulatif</h2>
+      <p class="mute" style="margin:0 0 6px">Dihitung dari awal data sampai {{pg.upto}} (semua tanggal, tidak terpengaruh filter tanggal). Target {{pg.tgtDesc}}.</p>
       <div class="tablewrap"><table class="sumtable">
         <colgroup><col style="width:26%"><col style="width:16%"><col style="width:22%"><col style="width:15%"><col style="width:21%"></colgroup>
         <thead><tr><th>Murid</th><th class="num">Ayat terbaca</th><th>Progress</th><th class="num">Surat tuntas</th><th class="num">Surat sebagian</th></tr></thead>
@@ -1227,9 +1249,8 @@ Vue.createApp({
       <h2>{{pg.photoTitle}}</h2>
       <div class="photos" :class="{one:pg.photos.length===1}" v-if="pg.photos.length">
         <figure v-for="(u,i) in pg.photos" :key="u">
-          <img v-if="!badImg[u]" :src="'https://drive.google.com/thumbnail?id='+u+'&sz=w1200'" referrerpolicy="no-referrer" alt="Foto Zoom" @error="badImg[u]=true">
+          <img v-if="!badImg[u]" :src="'https://drive.google.com/thumbnail?id='+u+'&sz=w1200'" referrerpolicy="no-referrer" alt="Foto" @error="badImg[u]=true">
           <p v-else class="imgfail">Foto tidak dapat dimuat. Pastikan file di Google Drive dibagikan ke "siapa saja dengan link".</p>
-          <figcaption>Foto {{i+1}}</figcaption>
         </figure>
       </div>
       <p v-else class="mute">{{photoNote}}</p>
