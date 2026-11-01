@@ -172,13 +172,14 @@ body.sheetopen{overflow:hidden}
 @page summary{size:A4 landscape;margin:12mm}
 @page daily{size:A4 portrait;margin:.3in 12mm}
 .piebox{margin:12px 0}
-.piewrap{display:flex;align-items:center;gap:24px;flex-wrap:wrap;margin-top:6px}
+.piebox figcaption{text-align:center}
+.piewrap{display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap;margin-top:10px}
 .chart svg.pie{display:block;width:170px;height:170px;flex:none;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .pie-bg{stroke:#e9edef}
 .pie-fg{stroke:#00a884;transition:stroke-dasharray .4s ease}
 .pie text.pie-pct{font-size:20px;font-weight:700;fill:#111b21;dominant-baseline:auto}
 .pie text.pie-sub{font-size:8px;fill:#667781}
-.pielegend{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;flex:1;min-width:200px}
+.pielegend{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;flex:0 1 320px;min-width:220px}
 .pielegend li{display:flex;align-items:center;gap:8px;font-size:14px}
 .pielegend li span{flex:1}
 .pielegend li.tot{border-top:1px solid var(--line);padding-top:8px;color:var(--mute)}
