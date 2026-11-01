@@ -238,6 +238,35 @@ td.link{color:#008069;font-weight:500}
 .studenthead h1{color:#111b21}
 }
 @media screen{
+.wrap{padding-bottom:96px}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;justify-content:center;background:#fff;border-top:1px solid #e9edef;padding:6px 0 calc(6px + env(safe-area-inset-bottom,0px))}
+.tab{flex:1;max-width:260px;display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:transparent;font:inherit;color:#54656f;cursor:pointer;padding:2px 0}
+.tab .tic{display:flex;align-items:center;justify-content:center;width:64px;height:30px;border-radius:16px;transition:background .15s}
+.tab .tl{font-size:12px;font-weight:500}
+.tab.on{color:#111b21}
+.tab.on .tic{background:#d9fdd3;color:#008069}
+.tab.on .tl{font-weight:700}
+.tab:focus-visible{outline:0}
+.tab:focus-visible .tic{box-shadow:0 0 0 2px #00a884}
+.kelasrow{margin:6px 0 0;display:flex;flex-wrap:wrap;gap:6px}
+.kelaschip{display:inline-block;margin:0;background:#d9fdd3;color:#0a5c48;border-radius:999px;padding:3px 12px;font-size:13px;font-weight:600}
+.loadtoast{bottom:84px}
+.dmulti{position:relative;max-width:420px}
+.dbtn{width:100%;display:flex;align-items:center;gap:10px;font:inherit;color:var(--ink);background:#f0f2f5;border:0;border-radius:999px;padding:9px 16px;cursor:pointer;text-align:left}
+.dbtn>span:first-child{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.dbtn:focus-visible{outline:0;box-shadow:inset 0 -2px 0 #00a884}
+.dpanel{position:absolute;z-index:25;left:0;right:0;top:calc(100% + 4px);background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(11,20,26,.25);padding:10px 0 8px}
+.dsearch{display:block;width:calc(100% - 20px);margin:0 10px 6px;font:inherit;background:#f0f2f5;border:0;border-radius:999px;padding:8px 14px}
+.dsearch:focus-visible{outline:0;box-shadow:inset 0 -2px 0 #00a884}
+.dlist{list-style:none;margin:0;padding:0;max-height:300px;overflow:auto}
+.dlist li label{display:flex;align-items:center;gap:12px;padding:8px 16px;cursor:pointer}
+.dlist li label:hover{background:#f5f6f6}
+.dlist li.on .dl{font-weight:600;color:#008069}
+.dlist li .dl{flex:1}
+.dlist input{accent-color:#00a884;width:16px;height:16px}
+.dlist .dnone{padding:10px 16px;color:var(--mute)}
+.dfoot{display:flex;align-items:center;gap:8px;padding:8px 12px 0;border-top:1px solid var(--line);margin-top:6px}
+.dfoot .mute{flex:1;text-align:center}
 .kindrow,.fmtrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .kbtn.sel{background:var(--bub);border-color:var(--acc);color:#0a5c48;font-weight:600}
 .fmtrow{background:#f0f2f5;border-radius:12px;padding:8px 10px}
@@ -592,12 +621,13 @@ function wDoc(children,landscape,vm){
 }
 
 Vue.createApp({
-  data(){return{logoSrc:LOGO_DRIVE_ID?('https://drive.google.com/thumbnail?id='+LOGO_DRIVE_ID+'&sz=w800'):LOGO_DATA,logoData:LOGO_DATA,rows:[],src:'Memuat Google Sheet...',dataSource:'google',googleRows:[],gSheets:LOG_SHEETS.map((x,i)=>({label:'Sheet '+(i+1),state:'loading',n:0,err:''})),uploadName:'',err:'',sel:null,pick:[],printDate:'',targetMode:'settings',juzSel:[30],batchPick:[],ustadzPick:[],settings:{state:'loading',err:'',classes:[],students:[]},juzOpen:false,comboOpen:false,comboQ:'',comboHi:0,busy:false,note:'',photos:[],photoState:'loading',photoErr:'',badImg:{},booting:true,expKind:'',sessOpen:false,sess:null,sessStudent:''}},
+  data(){return{logoSrc:LOGO_DRIVE_ID?('https://drive.google.com/thumbnail?id='+LOGO_DRIVE_ID+'&sz=w800'):LOGO_DATA,logoData:LOGO_DATA,rows:[],src:'Memuat Google Sheet...',dataSource:'google',googleRows:[],gSheets:LOG_SHEETS.map((x,i)=>({label:'Sheet '+(i+1),state:'loading',n:0,err:''})),uploadName:'',err:'',sel:null,pick:[],printDate:'',targetMode:'settings',juzSel:[30],batchPick:[],ustadzPick:[],settings:{state:'loading',err:'',classes:[],students:[]},juzOpen:false,comboOpen:false,comboQ:'',comboHi:0,busy:false,note:'',photos:[],photoState:'loading',photoErr:'',badImg:{},booting:true,expKind:'',tab:'laporan',stuBatchPick:[],dateOpen:false,dateQ:'',sessOpen:false,sess:null,sessStudent:''}},
   mounted(){
     this.reloadAll(true);
     document.addEventListener('keydown',e=>{if(e.key==='Escape'&&this.sessOpen)this.closeSession()});
     document.addEventListener('click',e=>{
       if(!e.target.closest('.jmulti'))this.juzOpen=false;
+      if(!e.target.closest('.dmulti'))this.dateOpen=false;
       if(!e.target.closest('.combo'))this.closeCombo();
     });
   },
@@ -631,12 +661,13 @@ Vue.createApp({
       return 'Tidak ada foto untuk sesi ini (tanggal, kelas, dan lokasi).';
     },
     dailyPages(){return this.dailyBuilder(this.shownRows)},
-    dailyBuilder(){return (shown)=>{
+    dailyBuilder(){return (shown,base)=>{
+      const B=base||this.bRows,VS=base?this.eStudents:this.vStudents,AN=base?this.eStudents.map(x=>x.name):this.allNames;
       const real=l=>{l=String(l==null?'':l).trim();return l&&l!=='-'?l:''};
       const mn=r=>String(r.murid||'').trim();
       // lokasi yang biasa dipakai tiap murid (per Ustadz), dari baris yang punya lokasi
       const cntLok=new Map(),memberSet=new Map();
-      this.bRows.forEach(r=>{const l=real(r.lokasi),n=mn(r);if(!l||!n)return;
+      B.forEach(r=>{const l=real(r.lokasi),n=mn(r);if(!l||!n)return;
         const uk=normKelas(r.ustadz),k=uk+'|'+n+'|'+normKelas(l);cntLok.set(k,(cntLok.get(k)||0)+1);
         const mk=uk+'|'+normKelas(l);(memberSet.get(mk)||memberSet.set(mk,new Set()).get(mk)).add(n)});
       const usual=new Map();
@@ -669,8 +700,8 @@ Vue.createApp({
       return [...groups.values()].sort((a,b)=>a.dk<b.dk?-1:a.dk>b.dk?1:(a.uk<b.uk?-1:a.uk>b.uk?1:(a.jam<b.jam?-1:a.jam>b.jam?1:(a.ln<b.ln?-1:1)))).map(g=>{
         const kn=g.uk;
         const placed=new Set([...cntLok.keys()].map(k=>{const p=k.split('|');return p[0]+'|'+p[1]}));
-        const unplaced=kn?this.vStudents.filter(x=>normKelas(x.kelas)===kn&&!placed.has(kn+'|'+x.name)).map(x=>x.name):[];
-        const base=(kn||g.ln)?[...new Set([...(memberSet.get(kn+'|'+g.ln)||[]),...unplaced])]:this.allNames;
+        const unplaced=kn?VS.filter(x=>normKelas(x.kelas)===kn&&!placed.has(kn+'|'+x.name)).map(x=>x.name):[];
+        const base=(kn||g.ln)?[...new Set([...(memberSet.get(kn+'|'+g.ln)||[]),...unplaced])]:AN;
         const elsewhere=new Set();
         (byDay.get(g.dk+'|'+g.uk)||[]).forEach(o=>{if(o!==g)o.rows.forEach(r=>elsewhere.add(mn(r)))});
         const members=base.filter(n=>!elsewhere.has(n));
@@ -690,7 +721,7 @@ Vue.createApp({
           });
         });
         const nameSet=new Set(names);
-        const cum=analyze(this.bRows.filter(r=>{const k=dkey(r.tgl);return k&&(k<g.dk||(k===g.dk&&(r.jam||'')<=(g.jam||'')))&&nameSet.has(String(r.murid||'').trim())}),names,this.tgtOf).list;
+        const cum=analyze(B.filter(r=>{const k=dkey(r.tgl);return k&&(k<g.dk||(k===g.dk&&(r.jam||'')<=(g.jam||'')))&&nameSet.has(String(r.murid||'').trim())}),names,this.tgtOf).list;
         const cnt={baca:0,hadir:0,sakit:0,kabar:0,kosong:0};
         names.forEach(n=>{const rs=g.rows.filter(r=>String(r.murid).trim()===n);
           if(!rs.length){cnt.kosong++;return}
@@ -707,29 +738,38 @@ Vue.createApp({
     settingsIdx(){
       const cls=new Map(),byKelas=new Map(),sts=new Map();
       this.settings.classes.forEach(c=>{cls.set((c.batch||'')+'|'+normKelas(c.kelas),c);if(!byKelas.has(normKelas(c.kelas)))byKelas.set(normKelas(c.kelas),c)});
-      this.settings.students.forEach(x=>{const k=normKelas(x.name);if(!sts.has(k))sts.set(k,x)});
-      return {cls,byKelas,sts};
+      const mem=new Map();
+      this.settings.students.forEach(x=>{const k=normKelas(x.name);const a=mem.get(k)||mem.set(k,[]).get(k);if(!a.some(y=>y.batch===x.batch&&normKelas(y.kelas)===normKelas(x.kelas)))a.push({name:x.name,batch:x.batch,kelas:x.kelas})});
+      mem.forEach(a=>a.sort((a,b)=>(b.batch===''?-1:a.batch===''?1:b.batch.localeCompare(a.batch,undefined,{numeric:true}))));
+      mem.forEach((a,k)=>sts.set(k,a[0]));
+      return {cls,byKelas,sts,mem};
     },
     eRows(){
-      const sts=this.settingsIdx.sts;
-      if(!sts.size)return this.rows;
-      return this.rows.map(r=>{const x=sts.get(normKelas(r.murid));return x?{...r,murid:x.name,ustadz:x.kelas,batch:x.batch}:r});
+      const mem=this.settingsIdx.mem;
+      if(!mem.size)return this.rows;
+      return this.rows.map(r=>{
+        const ms=mem.get(normKelas(r.murid));if(!ms)return r;
+        if(ms.length===1){const x=ms[0];return {...r,murid:x.name,ustadz:x.kelas,batch:x.batch}}
+        const rb=String(r.batch==null?'':r.batch).trim(),ru=normKelas(r.ustadz);
+        const m=ms.find(x=>x.batch===rb&&normKelas(x.kelas)===ru)||ms.find(x=>x.batch===rb)||ms.find(x=>normKelas(x.kelas)===ru);
+        return m?{...r,murid:m.name,ustadz:m.kelas,batch:m.batch}:{...r,murid:ms[0].name};
+      });
     },
     eStudents(){
       const m=new Map();
-      this.settings.students.forEach(x=>{const k=normKelas(x.name);if(!m.has(k))m.set(k,{name:x.name,batch:x.batch,kelas:x.kelas})});
-      this.eRows.forEach(r=>{const n=String(r.murid||'').trim();if(!n)return;const k=normKelas(n);if(!m.has(k))m.set(k,{name:n,batch:r.batch||'',kelas:r.ustadz||''})});
+      this.settingsIdx.mem.forEach((ms,k)=>m.set(k,{name:ms[0].name,batch:ms[0].batch,kelas:ms[0].kelas,ms}));
+      this.eRows.forEach(r=>{const n=String(r.murid||'').trim();if(!n)return;const k=normKelas(n);if(!m.has(k))m.set(k,{name:n,batch:r.batch||'',kelas:r.ustadz||'',ms:[{name:n,batch:r.batch||'',kelas:r.ustadz||''}]})});
       return [...m.values()];
     },
     studentIdx(){const m=new Map();this.eStudents.forEach(x=>m.set(normKelas(x.name),x));return m},
-    vStudents(){return this.eStudents.filter(x=>(!this.batchPick.length||this.batchPick.includes(x.batch||''))&&(!this.ustadzPick.length||this.ustadzPick.includes(normKelas(x.kelas))))},
+    vStudents(){return this.eStudents.filter(x=>x.ms.some(m=>(!this.batchPick.length||this.batchPick.includes(m.batch||''))&&(!this.ustadzPick.length||this.ustadzPick.includes(normKelas(m.kelas)))))},
     bRows(){
       if(!this.batchPick.length&&!this.ustadzPick.length)return this.eRows;
       return this.eRows.filter(r=>(!this.batchPick.length||this.batchPick.includes(r.batch||''))&&(!this.ustadzPick.length||this.ustadzPick.includes(normKelas(r.ustadz))));
     },
     batchOpts(){
       const m=new Map();
-      this.eStudents.forEach(x=>{const k=x.batch||'';(m.get(k)||m.set(k,new Set()).get(k)).add(x.name)});
+      this.eStudents.forEach(x=>x.ms.forEach(mm=>{const k=mm.batch||'';(m.get(k)||m.set(k,new Set()).get(k)).add(x.name)}));
       const l=[...m.entries()].map(([k,v])=>({key:k,label:k?'Batch '+k:'Tanpa batch',n:v.size}));
       l.sort((a,b)=>a.key===''?1:b.key===''?-1:a.key.localeCompare(b.key,undefined,{numeric:true}));
       return l.some(x=>x.key)?l:[];
@@ -737,7 +777,7 @@ Vue.createApp({
     batchLabel(){return this.batchOpts.filter(o=>this.batchPick.includes(o.key)).map(o=>o.key||'tanpa batch').join(', ')},
     ustadzOpts(){
       const m=new Map();
-      this.eStudents.forEach(x=>{const k=normKelas(x.kelas);if(!k)return;const o=m.get(k)||{key:k,label:x.kelas,names:new Set()};o.names.add(x.name);m.set(k,o)});
+      this.eStudents.forEach(x=>x.ms.forEach(mm=>{const k=normKelas(mm.kelas);if(!k)return;const o=m.get(k)||{key:k,label:mm.kelas,names:new Set()};o.names.add(x.name);m.set(k,o)}));
       const l=[...m.values()].map(o=>({key:o.key,label:o.label,n:o.names.size})).sort((a,b)=>a.label.localeCompare(b.label));
       return l.length>=2?l:[];
     },
@@ -746,31 +786,44 @@ Vue.createApp({
     dateOpts(){
       const m=new Map();
       this.bRows.forEach(r=>{const k=dkey(r.tgl);if(!k)return;const o=m.get(k)||{key:k,date:r.tgl,names:new Set()};o.names.add(String(r.murid).trim());m.set(k,o)});
-      return [...m.values()].sort((a,b)=>a.key<b.key?-1:1).map(o=>({key:o.key,label:this.fd(o.date),n:o.names.size}));
+      return [...m.values()].sort((a,b)=>a.key<b.key?1:-1).map(o=>({key:o.key,label:this.fd(o.date),n:o.names.size}));
     },
-    filterLabel(){return this.dateOpts.filter(o=>this.pick.includes(o.key)).map(o=>o.label).join(', ')},
+    filterLabel(){return this.dateOpts.filter(o=>this.pick.includes(o.key)).reverse().map(o=>o.label).join(', ')},
+    dateShown(){const q=this.dateQ.trim().toLowerCase();return q?this.dateOpts.filter(o=>o.label.toLowerCase().includes(q)||o.key.includes(q)):this.dateOpts},
+    dateBtnLabel(){const n=this.pick.length;return n?(n===1?this.filterLabel:n+' tanggal dipilih'):'Semua tanggal'},
     noDateCount(){return this.bRows.filter(r=>!dkey(r.tgl)).length},
     shownRows(){return this.pick.length?this.bRows.filter(r=>this.pick.includes(dkey(r.tgl))):this.bRows},
     hadirCount(){return this.res.list.filter(x=>x.hadir).length},
     activeCount(){return this.res.list.filter(x=>x.log.length).length},
     tgt(){return buildTarget(this.targetMode==='all'?'all':this.juzSel)},
     juzLabel(){return 'Juz '+juzText([...this.juzSel].sort((a,b)=>a-b))},
-    comboList(){const q=this.comboQ.trim().toLowerCase();return this.res.list.filter(x=>!q||x.name.toLowerCase().includes(q))},
+    comboList(){const q=this.comboQ.trim().toLowerCase();return this.stuRes.list.filter(x=>!q||x.name.toLowerCase().includes(q))},
     res(){return analyze(this.shownRows,this.allNames,this.tgtOf)},
+    stuRes(){return analyze(this.eRows,this.eStudents.map(x=>x.name),this.stuTgtOf0)},
+    stuTgtOf0(){const manual=this.tgt;if(this.targetMode!=='settings'||this.settings.state!=='ok')return ()=>manual;const st=this.studentIdx;return name=>{const x=st.get(normKelas(name));return x?this.tgtFromMem(x.ms[0],manual):manual}},
+    curKelas(){return this.curMsShown.map(m=>[m.batch?'Batch '+m.batch:'',m.kelas].filter(Boolean).join(' - ')).filter(Boolean)},
+    curMsShown(){const p=this.stuBatchPick;return p.length?this.curMs.filter(m=>p.includes(m.batch||'')):this.curMs},
     tgtOf(){
       const manual=this.tgt;
       if(this.targetMode!=='settings'||this.settings.state!=='ok')return ()=>manual;
-      const idx=this.settingsIdx,st=this.studentIdx;
-      return name=>{
-        const x=st.get(normKelas(name));if(!x)return manual;
-        const c=idx.cls.get((x.batch||'')+'|'+normKelas(x.kelas))||idx.byKelas.get(normKelas(x.kelas));
-        return c?rangeTarget(c.from,c.to):manual;
-      };
+      return name=>{const m=this.memLap(name);return m?this.tgtFromMem(m,manual):manual};
+    },
+    stuTgtOf(){
+      const manual=this.tgt;
+      if(this.targetMode!=='settings'||this.settings.state!=='ok')return ()=>manual;
+      return name=>{const m=this.memStu(name);return m?this.tgtFromMem(m,manual):manual};
+    },
+    curName(){const l=this.stuRes.list;const x=l.find(y=>y.name===this.sel)||l[0];return x?x.name:''},
+    curMs(){const x=this.studentIdx.get(normKelas(this.curName));return x?x.ms:[]},
+    curBatchOpts(){return this.curMs.length>=2?this.curMs.map(m=>({key:m.batch,label:(m.batch?'Batch '+m.batch:'Tanpa batch')+(m.kelas?' - '+m.kelas:'')})):[]},
+    curRows(){
+      const n=this.curName,p=this.stuBatchPick;
+      return this.eRows.filter(r=>String(r.murid||'').trim()===n&&(!p.length||p.includes(r.batch||'')));
     },
     summaryGroups(){
       const g=new Map();
       this.res.list.forEach(x=>{
-        const st=this.studentIdx.get(normKelas(x.name))||{},b=st.batch||'',k=st.kelas||'',key=b+'|'+normKelas(k);
+        const st=this.memLap(x.name)||{},b=st.batch||'',k=st.kelas||'',key=b+'|'+normKelas(k);
         if(!g.has(key))g.set(key,{key,batch:b,kelas:k,list:[]});
         g.get(key).list.push(x);
       });
@@ -794,7 +847,7 @@ Vue.createApp({
       }
       const g=new Map();
       this.res.list.forEach(x=>{
-        const s=this.studentIdx.get(normKelas(x.name)),kelas=(s&&s.kelas)||'Lainnya',k=kelas+'|'+x.tgt.key;
+        const s=this.memLap(x.name),kelas=(s&&s.kelas)||'Lainnya',k=kelas+'|'+x.tgt.key;
         if(!g.has(k))g.set(k,{kelas,t:x.tgt});
       });
       const parts=[...g.values()].sort((a,b)=>a.kelas.localeCompare(b.kelas)).map(o=>o.kelas+': '+o.t.name+' ('+o.t.total+' ayat)');
@@ -805,12 +858,12 @@ Vue.createApp({
     avgPct(){const l=this.res.list;return l.length?Math.round(l.reduce((a,x)=>a+x.pct,0)/l.length*10)/10:0},
     trend(){
       const c=this.cur;if(!c)return null;
-      const mine=this.bRows.filter(r=>String(r.murid||'').trim()===c.name&&dkey(r.tgl));
+      const mine=this.curRows.filter(r=>dkey(r.tgl));
       const dks=[...new Set(mine.map(r=>dkey(r.tgl)))].sort();
       if(!dks.length)return null;
       let prev={total:0,tuntas:0};
       return dks.map(dk=>{
-        const a=analyze(mine.filter(r=>dkey(r.tgl)<=dk),[c.name],this.tgtOf).list[0];
+        const a=analyze(mine.filter(r=>dkey(r.tgl)<=dk),[c.name],this.stuTgtOf).list[0];
         const dt=mine.find(r=>dkey(r.tgl)===dk).tgl;
         const p={dk,label:dt.getDate()+' '+BULAN[dt.getMonth()].slice(0,3),full:longDate(dt),total:a.total,pct:a.pct,tuntas:a.tuntas,delta:a.total-prev.total,dTuntas:a.tuntas-prev.tuntas};
         prev=a;return p;
@@ -847,7 +900,11 @@ Vue.createApp({
       const W=640,rh=28,T=6,L=170,bw=270,mx=Math.min(100,niceCeil(Math.max(5,...l.map(x=>x.pct))));
       return {W,H:T+rh*l.length+6,rows:l.map((x,i)=>({name:x.name,short:x.name.length>24?x.name.slice(0,23)+'…':x.name,y:T+rh*i,w:Math.max(x.pct>0?2:0,bw*x.pct/mx),pct:x.pct,tuntas:x.tuntas,nSeg:x.tgt.nSeg,on:this.cur&&x.name===this.cur.name})),L,bw,mx};
     },
-    cur(){const l=this.res.list;return l.find(x=>x.name===this.sel)||l[0]||null}
+    cur(){
+      const l=this.stuRes.list,x=l.find(y=>y.name===this.sel)||l[0]||null;
+      if(!x||!this.stuBatchPick.length||this.curMs.length<2)return x;
+      return analyze(this.curRows,[x.name],this.stuTgtOf).list[0]||x;
+    }
   },
   methods:{
     label,
@@ -865,7 +922,6 @@ Vue.createApp({
       const i=this.batchPick.indexOf(k);
       this.batchPick=i>=0?this.batchPick.filter(x=>x!==k):[...this.batchPick,k];
       this.pick=this.pick.filter(d=>this.dateOpts.some(o=>o.key===d));
-      this.sel=null;
     },
     toggleJuz(j){
       const i=this.juzSel.indexOf(j);
@@ -873,10 +929,26 @@ Vue.createApp({
       else this.juzSel=[...this.juzSel,j].sort((a,b)=>a-b);
     },
     allJuz(){this.juzSel=[...Array(30).keys()].map(k=>k+1)},
-    openCombo(){if(!this.comboOpen){this.comboOpen=true;this.comboQ='';this.comboHi=Math.max(0,this.res.list.findIndex(x=>this.cur&&x.name===this.cur.name))}},
+    openCombo(){if(!this.comboOpen){this.comboOpen=true;this.comboQ='';this.comboHi=Math.max(0,this.stuRes.list.findIndex(x=>this.cur&&x.name===this.cur.name))}},
     toggleCombo(){if(this.comboOpen)this.closeCombo();else{this.$refs.cin.focus();this.openCombo()}},
     closeCombo(){this.comboOpen=false;this.comboQ=''},
-    chooseStudent(n){this.sel=n;this.closeCombo()},
+    memLap(name){
+      const x=this.studentIdx.get(normKelas(name));if(!x)return null;
+      const bp=this.batchPick,up=this.ustadzPick;
+      const f=x.ms.filter(m=>(!bp.length||bp.includes(m.batch||''))&&(!up.length||up.includes(normKelas(m.kelas))));
+      return (f.length?f:x.ms)[0];
+    },
+    memStu(name){
+      const x=this.studentIdx.get(normKelas(name));if(!x)return null;
+      if(name===this.curName&&this.stuBatchPick.length){const f=x.ms.filter(m=>this.stuBatchPick.includes(m.batch||''));if(f.length)return f[0]}
+      return x.ms[0];
+    },
+    tgtFromMem(m,manual){
+      const idx=this.settingsIdx,c=idx.cls.get((m.batch||'')+'|'+normKelas(m.kelas))||idx.byKelas.get(normKelas(m.kelas));
+      return c?rangeTarget(c.from,c.to):manual;
+    },
+    toggleStuBatch(k){const p=this.stuBatchPick;this.stuBatchPick=p.includes(k)?p.filter(x=>x!==k):[...p,k]},
+    chooseStudent(n){if(this.curName!==n)this.stuBatchPick=[];this.sel=n;this.closeCombo()},
     comboKey(e){
       const n=this.comboList.length;
       if(e.key==='ArrowDown'){e.preventDefault();if(!this.comboOpen)this.openCombo();else this.comboHi=n?(this.comboHi+1)%n:0}
@@ -886,15 +958,16 @@ Vue.createApp({
     },
     studentTarget(c){
       if(!this.settingsOn)return this.tgtView.desc;
-      const x=this.studentIdx.get(normKelas(c.name)),info=x&&x.kelas?[x.kelas,x.batch?'Batch '+x.batch:''].filter(Boolean).join(', '):'';
+      const x=this.memStu(c.name),info=x&&x.kelas?[x.kelas,x.batch?'Batch '+x.batch:''].filter(Boolean).join(', '):'';
       return 'sesuai Data Kelas'+(info?' ('+info+')':'')+': '+c.tgt.desc;
     },
     absText(x){const a=x.absen&&x.absen[0];return a?a.absen+(x.absen.length>1?' ('+x.absen.length+'x)':''):''},
     noLogText(x){return x.hadir?'Hadir, tanpa bacaan':(this.absText(x)||(this.pick.length?'Tidak ada setoran':'-'))},
+    setTab(t){this.tab=t;this.expKind='';this.comboOpen=false;this.dateOpen=false;window.scrollTo(0,0)},
     emptyMsg(c){
-      if(!c.hadir&&c.absen&&c.absen.length)return c.absen[0].absen+(this.pick.length?' pada tanggal terpilih.':'. Belum ada setoran.');
-      if(c.hadir)return this.pick.length?'Hadir pada tanggal terpilih, tidak ada bacaan dalam target.':'Hadir, belum ada bacaan dalam target.';
-      return this.pick.length?'Tidak ada setoran pada tanggal terpilih.':'Belum ada setoran.';
+      if(!c.hadir&&c.absen&&c.absen.length)return c.absen[0].absen+'. Belum ada setoran.';
+      if(c.hadir)return 'Hadir, belum ada bacaan dalam target.';
+      return 'Belum ada setoran.';
     },
     async loadGoogleData(){
       this.gSheets=LOG_SHEETS.map((x,i)=>({label:'Sheet '+(i+1),state:'loading',n:0,err:''}));
@@ -932,7 +1005,6 @@ Vue.createApp({
       const i=this.ustadzPick.indexOf(k);
       this.ustadzPick=i>=0?this.ustadzPick.filter(x=>x!==k):[...this.ustadzPick,k];
       this.pick=this.pick.filter(d=>this.dateOpts.some(o=>o.key===d));
-      this.sel=null;
     },
     async reloadAll(first){
       if(!first){this.err='';this.note=''}
@@ -958,7 +1030,8 @@ Vue.createApp({
       const all=Promise.all(imgs.map(i=>i.complete?1:new Promise(r=>{i.addEventListener('load',r,{once:true});i.addEventListener('error',r,{once:true})})));
       return Promise.race([all,new Promise(r=>setTimeout(r,8000))]);
     },
-    metaRows(title,target){
+    metaRows(title,target,o={}){
+      if(o.plain)return [[title],['Sumber',this.src],['Target',target||this.tgtView.desc],['Diekspor',todayStr()]];
       return [[title],['Sumber',this.src],['Target',target||this.tgtView.desc],['Batch',this.batchPick.length?this.batchLabel:'Semua batch'],['Ustadz',this.ustadzPick.length?this.ustadzLabel:'Semua ustadz'],['Filter tanggal',this.pick.length?this.filterLabel:'Semua tanggal'],['Diekspor',todayStr()],[]];
     },
     wbSummary(){
@@ -978,7 +1051,7 @@ Vue.createApp({
     },
     wbStudent(){
       const c=this.cur,t=c.tgt;
-      const rows=this.metaRows('Progress Bacaan '+c.name,this.studentTarget(c));
+      const rows=this.metaRows('Progress Bacaan '+c.name,this.studentTarget(c),{plain:true});
       rows.push([],['Progress',c.pct+'%  ('+c.total+' dari '+t.total+' ayat)'],['Surat tuntas',c.tuntas+' dari '+t.nSeg],['Surat baru sebagian',String(c.parsial)],['Setoran',c.log.length+(c.log.length?' (terakhir '+this.fd(c.last)+')':'')],['Tanggal hadir',String(c.hadir)]);
       if(!c.log.length)rows.push(['Keterangan',this.emptyMsg(c)]);
       const wb=XLSX.utils.book_new();
@@ -1022,9 +1095,9 @@ Vue.createApp({
     fileKey(){return slug(this.tgtKey)+(this.batchPick.length?'-batch-'+slug(this.batchPick.join('-')):'')+(this.pick.length?'-filter-tanggal':'')},
     wMeta(title,target,o={}){
       const c=[wP(title,{size:36,bold:true,after:60,pageBreakBefore:o.pageBreak,heading:1}),wP('Sumber: '+this.src,{size:20,color:WMUTE,after:20}),wP('Target '+(target||this.tgtView.desc),{size:20,color:WMUTE,after:20})];
-      if(this.ustadzPick.length&&!o.noScope)c.push(wP('Ustadz: '+this.ustadzLabel+'.',{size:20,bold:true,after:20}));
-      if(this.batchPick.length&&!o.noScope)c.push(wP('Batch: '+this.batchLabel+'.',{size:20,bold:true,after:20}));
-      if(this.pick.length)c.push(wP([wRun('Tanggal: '+this.filterLabel+'. ',{size:20,bold:true}),wRun('Angka dihitung hanya dari bacaan pada tanggal tersebut.',{size:20,color:WMUTE})],{after:20}));
+      if(this.ustadzPick.length&&!o.noScope&&!o.plain)c.push(wP('Ustadz: '+this.ustadzLabel+'.',{size:20,bold:true,after:20}));
+      if(this.batchPick.length&&!o.noScope&&!o.plain)c.push(wP('Batch: '+this.batchLabel+'.',{size:20,bold:true,after:20}));
+      if(this.pick.length&&!o.plain)c.push(wP([wRun('Tanggal: '+this.filterLabel+'. ',{size:20,bold:true}),wRun('Angka dihitung hanya dari bacaan pada tanggal tersebut.',{size:20,color:WMUTE})],{after:20}));
       c.push(wP('Diekspor '+todayStr(),{size:20,color:WMUTE,after:120}));
       return c;
     },
@@ -1041,7 +1114,7 @@ Vue.createApp({
     },
     docStudent(){
       const c=this.cur,t=c.tgt;
-      const ch=this.wMeta('Progress Bacaan '+c.name,this.studentTarget(c));
+      const ch=this.wMeta('Progress Bacaan '+c.name,this.studentTarget(c),{plain:true});
       ch.push(wP('',{after:60}));
       ch.push(wTable([3400,6806],null,[
         ['Progress',c.pct+'%  ('+c.total+' dari '+t.total+' ayat)'],['Surat tuntas',c.tuntas+' dari '+t.nSeg],['Surat baru sebagian',String(c.parsial)],
@@ -1096,7 +1169,7 @@ Vue.createApp({
       try{
         const k=this.fileKey();let doc,name,ph=null;
         if(kind==='summary'){doc=this.docSummary();name='ringkasan-progress-'+k+'.docx'}
-        else if(kind==='detail'){doc=this.docStudent();name='progress-'+slug(this.cur.name)+'-'+k+'.docx'}
+        else if(kind==='detail'){doc=this.docStudent();name='progress-'+slug(this.cur.name)+'-'+slug(this.tgtKey)+(this.stuBatchPick.length?'-batch-'+slug(this.stuBatchPick.join('-')):'')+'.docx'}
         else{const r=await this.docDaily();doc=r.doc;name='laporan-harian-'+k+'.docx';ph=r}
         const blob=await docx.Packer.toBlob(doc);
         await saveFile(await blob.arrayBuffer(),name,'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
@@ -1112,7 +1185,7 @@ Vue.createApp({
         const k=slug(this.tgtKey)+(this.batchPick.length?'-batch-'+slug(this.batchPick.join('-')):'')+(this.pick.length?'-filter-tanggal':'');
         if(kind==='summary')await saveXlsx(this.wbSummary(),'ringkasan-progress-'+k+'.xlsx');
         else if(kind==='daily')await saveXlsx(this.wbDaily(),'laporan-harian-'+k+'.xlsx');
-        else await saveXlsx(this.wbStudent(),'progress-'+slug(this.cur.name)+'-'+k+'.xlsx');
+        else await saveXlsx(this.wbStudent(),'progress-'+slug(this.cur.name)+'-'+slug(this.tgtKey)+(this.stuBatchPick.length?'-batch-'+slug(this.stuBatchPick.join('-')):'')+'.xlsx');
       }catch(e){
         if(e&&e.code==='declined')return;
         this.err='Gagal ekspor Excel: '+((e&&e.message)||e);
@@ -1128,7 +1201,7 @@ Vue.createApp({
     },
     openSession(l){
       const n=this.cur?this.cur.name:'',dk=dkey(l.tgl),ln=normKelas(l.lokasi==='-'?'':l.lokasi),jm=l.jam||'';
-      const ps=this.dailyBuilder(this.bRows).filter(p=>p.dk===dk&&p.names.includes(n));
+      const ps=this.dailyBuilder(this.eRows,this.eRows).filter(p=>p.dk===dk&&p.names.includes(n));
       this.sess=ps.find(x=>x.jam===jm&&x.ln===ln)||ps.find(x=>x.jam===jm)||ps.find(x=>x.ln===ln)||ps[0]||null;
       this.sessStudent=n;this.sessOpen=true;
       document.body.classList.add('sheetopen');
@@ -1160,6 +1233,7 @@ Vue.createApp({
     <div class="spbar"><i :style="{width:Math.max(loadPct,6)+'%'}"></i></div>
   </div>
   <template v-if="!booting">
+  <template v-if="tab==='laporan'">
   <details class="dbox srcbox">
     <summary>Sumber Data</summary>
     <div class="dbody">
@@ -1183,7 +1257,6 @@ Vue.createApp({
     <summary>Cetak &amp; Unduh</summary>
     <div class="dbody">
       <div class="kindrow" role="group" aria-label="Pilih laporan">
-        <button class="btn kbtn" :class="{sel:expKind==='detail'}" :aria-pressed="expKind==='detail'" :disabled="!cur" @click="expKind=expKind==='detail'?'':'detail'">Murid ini</button>
         <button class="btn kbtn" :class="{sel:expKind==='summary'}" :aria-pressed="expKind==='summary'" :disabled="!res.list.length" @click="expKind=expKind==='summary'?'':'summary'">Ringkasan semua</button>
         <button class="btn kbtn" :class="{sel:expKind==='daily'}" :aria-pressed="expKind==='daily'" :disabled="!dailyPages.length" @click="expKind=expKind==='daily'?'':'daily'">Ringkasan per hari</button>
       </div>
@@ -1196,10 +1269,12 @@ Vue.createApp({
       <p class="mute" v-else>Pilih laporan, lalu pilih format PDF, Word, atau Excel.</p>
     </div>
   </details>
+  </template>
   <p v-if="err" class="msg err">{{err}}</p>
   <p v-if="busy" class="msg">Menyiapkan file Word...</p>
   <p v-if="note&&!busy" class="msg">{{note}}</p>
 
+  <template v-if="tab==='laporan'">
   <div class="targetbar">
     <label for="tmode"><b>Target progress</b></label>
     <select id="tmode" v-model="targetMode">
@@ -1245,15 +1320,46 @@ Vue.createApp({
 
   <div class="filterbar" v-if="dateOpts.length">
     <div class="fhead"><b>Filter tanggal</b><button class="btn small" v-if="pick.length" @click="pick=[]">Hapus filter</button></div>
-    <div class="chips">
-      <button v-for="o in dateOpts" :key="o.key" class="chip" :class="{on:pick.includes(o.key)}" :aria-pressed="pick.includes(o.key)" @click="toggle(o.key)">{{o.label}} <small>({{o.n}} murid)</small></button>
+    <div class="dmulti">
+      <button type="button" class="dbtn" :aria-expanded="dateOpen" aria-haspopup="listbox" @click="dateOpen=!dateOpen"><span>{{dateBtnLabel}}</span><small class="mute">{{dateOpts.length}} tanggal</small><span aria-hidden="true">&#9662;</span></button>
+      <div class="dpanel" v-if="dateOpen" role="group" aria-label="Pilih tanggal">
+        <input type="text" class="dsearch" v-model="dateQ" placeholder="Cari tanggal, mis. Okt 2026..." aria-label="Cari tanggal">
+        <ul class="dlist">
+          <li v-for="o in dateShown" :key="o.key" :class="{on:pick.includes(o.key)}">
+            <label><input type="checkbox" :checked="pick.includes(o.key)" @change="toggle(o.key)"><span class="dl">{{o.label}}</span><small class="mute">{{o.n}} murid</small></label>
+          </li>
+          <li v-if="!dateShown.length" class="dnone">Tidak ada tanggal yang cocok.</li>
+        </ul>
+        <div class="dfoot"><button type="button" class="btn small" :disabled="!pick.length" @click="pick=[]">Hapus filter</button><span class="mute">Terbaru di atas.</span><button type="button" class="btn small primary" @click="dateOpen=false">Selesai</button></div>
+      </div>
     </div>
     <p class="mute" v-if="!pick.length">Pilih satu atau beberapa tanggal untuk melihat kegiatan pada tanggal itu. Tanpa pilihan, semua tanggal dihitung.</p>
   </div>
   <p class="msg filternote" v-if="pick.length">Menampilkan bacaan pada tanggal: <b>{{filterLabel}}</b>. Progress dihitung hanya dari bacaan pada tanggal tersebut.<span v-if="noDateCount" style="margin-left:.35em">{{noDateCount}} baris tanpa tanggal valid tidak ikut dihitung.</span></p>
 
-  <div class="studentbar" v-if="res.list.length">
-    <label for="scombo"><b>Murid</b> <span class="mute">({{res.list.length}} murid)</span></label>
+  <section class="cmp" v-if="chartC">
+    <h2>Perbandingan capaian murid</h2>
+    <figure class="chart">
+      <figcaption>Progress terhadap target {{tgtView.title}}</figcaption>
+      <p class="sub"><span v-if="pick.length">Hanya bacaan pada tanggal terpilih. </span>Diurutkan dari progress tertinggi. Klik baris untuk membuka detail murid.</p>
+      <svg :viewBox="'0 0 '+chartC.W+' '+chartC.H" role="img" :aria-label="'Perbandingan progress '+chartC.rows.length+' murid'">
+        <g v-for="r in chartC.rows" :key="r.name" class="row" @click="if(curName!==r.name)stuBatchPick=[];sel=r.name;setTab('murid')">
+          <title>{{r.name}}: {{r.pct}}%, {{r.tuntas}} dari {{r.nSeg}} surat tuntas</title>
+          <rect x="0" :y="r.y" :width="chartC.W" height="28" fill="transparent"/>
+          <text class="nm" x="0" :y="r.y+18" :font-weight="r.on?700:400">{{r.short}}</text>
+          <rect class="trk" :x="chartC.L" :y="r.y+6" :width="chartC.bw" height="16" rx="3"/>
+          <rect class="brr" :class="{dim:!r.on}" :x="chartC.L" :y="r.y+6" :width="r.w" height="16" rx="3"/>
+          <text class="val" :x="chartC.L+chartC.bw+8" :y="r.y+18">{{r.pct}}%</text>
+          <text :x="chartC.W" :y="r.y+18" text-anchor="end">{{r.tuntas}} / {{r.nSeg}} surat</text>
+        </g>
+      </svg>
+    </figure>
+  </section>
+
+  </template>
+  <template v-if="tab==='murid'">
+  <div class="studentbar" v-if="stuRes.list.length">
+    <label for="scombo"><b>Murid</b> <span class="mute">({{stuRes.list.length}} murid)</span></label>
     <div class="combo">
       <input id="scombo" ref="cin" type="text" role="combobox" autocomplete="off" aria-autocomplete="list" aria-controls="slist" :aria-expanded="comboOpen"
         placeholder="Cari nama murid..." :value="comboOpen?comboQ:(cur?cur.name:'')"
@@ -1269,30 +1375,32 @@ Vue.createApp({
     </div>
   </div>
 
-  <div class="studenthead" v-if="cur">
-    <h1>Progress Bacaan {{cur.name}}</h1>
-    <p class="mute srcprint">Sumber: {{src}}</p>
-    <p class="mute">Target {{studentTarget(cur)}}<span v-if="ustadzPick.length">. Ustadz: {{ustadzLabel}}</span><span v-if="batchPick.length">. Batch: {{batchLabel}}</span></p>
+  <div class="filterbar" v-if="cur&&curBatchOpts.length">
+    <div class="fhead"><b>Filter batch</b><button class="btn small" v-if="stuBatchPick.length" @click="stuBatchPick=[]">Hapus filter</button></div>
+    <div class="chips">
+      <button v-for="o in curBatchOpts" :key="o.key" class="chip" :class="{on:stuBatchPick.includes(o.key)}" :aria-pressed="stuBatchPick.includes(o.key)" @click="toggleStuBatch(o.key)">{{o.label}}</button>
+    </div>
+    <p class="mute" v-if="!stuBatchPick.length">{{cur.name}} mengikuti {{curBatchOpts.length}} batch. Semua batch dihitung; progress terhadap target batch terbaru. Pilih satu atau beberapa batch untuk memisahkan.</p>
+    <p class="mute" v-else>Progress dihitung hanya dari bacaan pada batch terpilih.</p>
   </div>
 
-  <section class="cmp" v-if="chartC">
-    <h2>Perbandingan capaian murid</h2>
-    <figure class="chart">
-      <figcaption>Progress terhadap target {{tgtView.title}}</figcaption>
-      <p class="sub"><span v-if="pick.length">Hanya bacaan pada tanggal terpilih. </span>Diurutkan dari progress tertinggi. Klik baris untuk membuka detail murid.</p>
-      <svg :viewBox="'0 0 '+chartC.W+' '+chartC.H" role="img" :aria-label="'Perbandingan progress '+chartC.rows.length+' murid'">
-        <g v-for="r in chartC.rows" :key="r.name" class="row" @click="sel=r.name">
-          <title>{{r.name}}: {{r.pct}}%, {{r.tuntas}} dari {{r.nSeg}} surat tuntas</title>
-          <rect x="0" :y="r.y" :width="chartC.W" height="28" fill="transparent"/>
-          <text class="nm" x="0" :y="r.y+18" :font-weight="r.on?700:400">{{r.short}}</text>
-          <rect class="trk" :x="chartC.L" :y="r.y+6" :width="chartC.bw" height="16" rx="3"/>
-          <rect class="brr" :class="{dim:!r.on}" :x="chartC.L" :y="r.y+6" :width="r.w" height="16" rx="3"/>
-          <text class="val" :x="chartC.L+chartC.bw+8" :y="r.y+18">{{r.pct}}%</text>
-          <text :x="chartC.W" :y="r.y+18" text-anchor="end">{{r.tuntas}} / {{r.nSeg}} surat</text>
-        </g>
-      </svg>
-    </figure>
-  </section>
+  <details class="dbox printbox" v-if="cur">
+    <summary>Cetak &amp; Unduh</summary>
+    <div class="dbody">
+      <div class="fmtrow">
+        <span class="alabel">Laporan murid ini, pilih format:</span>
+        <button class="btn" :disabled="!cur" @click="doPrint('detail')" title="Buka dialog cetak; simpan sebagai PDF">PDF (Cetak)</button>
+        <button class="btn" :disabled="busy||!cur" @click="exportDocx('detail')">Word (.docx)</button>
+        <button class="btn" :disabled="!cur" @click="exportXlsx('detail')">Excel (.xlsx)</button>
+      </div>
+    </div>
+  </details>
+  <div class="studenthead" v-if="cur">
+    <h1>Progress Bacaan {{cur.name}}</h1>
+    <p class="noprint kelasrow" v-if="curKelas.length"><span class="kelaschip" v-for="k in curKelas" :key="k">{{k}}</span></p>
+    <p class="mute srcprint">Sumber: {{src}}</p>
+    <p class="mute">Target {{studentTarget(cur)}}</p>
+  </div>
 
   <section v-if="cur">
     <h2>{{cur.name}}</h2>
@@ -1367,6 +1475,7 @@ Vue.createApp({
     </template>
   </section>
 
+  </template>
   <section class="summary-print" v-if="res.list.length">
     <article class="sumgroup" v-for="gr in summaryGroups" :key="gr.key">
     <h1>{{gr.title}}</h1>
@@ -1427,12 +1536,14 @@ Vue.createApp({
     </article>
   </section>
 
+  <template v-if="tab==='laporan'">
   <section v-if="res.warns.length">
     <h2>Catatan data</h2>
     <p v-for="w in res.warns" class="msg warn">{{w}}</p>
   </section>
 
   <p class="hint">Data utama dibaca otomatis dari dua Google Sheet (sheet log_bacaan_quran). Anda juga bisa upload file .xlsx dengan sheet log_bacaan_quran, atau seret file ke halaman ini, untuk menggantikannya. Target bisa dipilih per juz atau seluruh Al-Qur'an; bacaan di luar target tidak dihitung. Ayat mulai kosong dihitung 1, ayat selesai kosong dihitung ayat terakhir surat. Bacaan ulang tidak menambah persentase. Murid yang belum punya baris log tidak muncul. Kegiatan Kehadiran menandai murid ikut serta tanpa bacaan: dihitung sebagai hadir dan tidak mengubah progress. Filter tanggal hanya menampilkan tanggal yang ada kegiatannya, dan cetak mengikuti filter. Tombol Word dan Excel mengunduh data yang sama dengan tombol Cetak (target dan filter tanggal ikut). File diproses di browser Anda dan tidak dikirim ke server.</p>
+  </template>
   <div class="sheetwrap noprint" v-if="sessOpen" @click.self="closeSession">
     <div class="sheet" role="dialog" aria-modal="true" aria-label="Sesi kelas">
       <div class="sheethead"><button class="sclose" aria-label="Tutup" @click="closeSession">&#10005;</button><b>Sesi Kelas</b><small>{{sess?sess.sub:''}}</small></div>
@@ -1471,6 +1582,14 @@ Vue.createApp({
     </div>
   </div>
   </template>
+  <nav class="tabbar noprint" v-if="!booting" aria-label="Navigasi">
+    <button type="button" class="tab" :class="{on:tab==='laporan'}" :aria-current="tab==='laporan'?'page':null" @click="setTab('laporan')">
+      <span class="tic"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm1 11v4h2v-4H6zm4-5v9h2V9h-2zm4 3v6h2v-6h-2z"/></svg></span><span class="tl">Laporan</span>
+    </button>
+    <button type="button" class="tab" :class="{on:tab==='murid'}" :aria-current="tab==='murid'?'page':null" @click="setTab('murid')">
+      <span class="tic"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-3.3 0-8 1.7-8 5v1h16v-1c0-3.3-4.7-5-8-5z"/></svg></span><span class="tl">Murid</span>
+    </button>
+  </nav>
 </div>`
 }).mount('#app');
 window.addEventListener('afterprint',()=>{delete document.body.dataset.print});
