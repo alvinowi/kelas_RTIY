@@ -171,6 +171,20 @@ body.sheetopen{overflow:hidden}
 @page{margin:14mm}
 @page summary{size:A4 landscape;margin:12mm}
 @page daily{size:A4 portrait;margin:.3in 12mm}
+.piebox{margin:12px 0}
+.piewrap{display:flex;align-items:center;gap:24px;flex-wrap:wrap;margin-top:6px}
+.chart svg.pie{display:block;width:170px;height:170px;flex:none;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.pie-bg{stroke:#e9edef}
+.pie-fg{stroke:#00a884;transition:stroke-dasharray .4s ease}
+.pie text.pie-pct{font-size:20px;font-weight:700;fill:#111b21;dominant-baseline:auto}
+.pie text.pie-sub{font-size:8px;fill:#667781}
+.pielegend{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;flex:1;min-width:200px}
+.pielegend li{display:flex;align-items:center;gap:8px;font-size:14px}
+.pielegend li span{flex:1}
+.pielegend li.tot{border-top:1px solid var(--line);padding-top:8px;color:var(--mute)}
+.pielegend .dot{width:12px;height:12px;border-radius:50%;background:#e9edef;flex:none;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.pielegend .dot.on{background:#00a884}
+.pielegend .dot.sq{border-radius:3px}
 @media print{
 :root:root:root{--bg:#fff;--card:#fff;--ink:#000;--mute:#444;--line:#999;--tile:#e2e2e2;--ok:#0b6e8a;--fill:#9fd8e6}
 .actions,.cards,.hint,.filterbar,.targetbar,.srcbar,.dbox,.cmp,.studentbar,.sheetwrap,header{display:none!important}
@@ -238,6 +252,9 @@ td.link{color:#008069;font-weight:500}
 .studenthead h1{color:#111b21}
 }
 @media screen{
+.fbadge{margin-left:auto;background:var(--bub);color:#0a5c48;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:600}
+.subhead{font-size:13px;font-weight:600;color:#54656f;margin-top:4px}
+.dbox .dbody .filterbar,.dbox .dbody .targetbar{background:#f7f8f8;box-shadow:none;margin:0}
 .wrap{padding-bottom:96px}
 .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;justify-content:center;background:#fff;border-top:1px solid #e9edef;padding:6px 0 calc(6px + env(safe-area-inset-bottom,0px))}
 .tab{flex:1;max-width:260px;display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:transparent;font:inherit;color:#54656f;cursor:pointer;padding:2px 0}
@@ -813,6 +830,7 @@ Vue.createApp({
       if(this.targetMode!=='settings'||this.settings.state!=='ok')return ()=>manual;
       return name=>{const m=this.memStu(name);return m?this.tgtFromMem(m,manual):manual};
     },
+    activeFilters(){return this.ustadzPick.length+this.batchPick.length+(this.pick.length?1:0)+(this.targetMode!=='settings'?1:0)},
     curName(){const l=this.stuRes.list;const x=l.find(y=>y.name===this.sel)||l[0];return x?x.name:''},
     curMs(){const x=this.studentIdx.get(normKelas(this.curName));return x?x.ms:[]},
     curBatchOpts(){return this.curMs.length>=2?this.curMs.map(m=>({key:m.batch,label:(m.batch?'Batch '+m.batch:'Tanpa batch')+(m.kelas?' - '+m.kelas:'')})):[]},
@@ -898,7 +916,7 @@ Vue.createApp({
       const l=[...this.res.list].sort((a,b)=>b.pct-a.pct||a.name.localeCompare(b.name));
       if(!l.length)return null;
       const W=640,rh=28,T=6,L=170,bw=270,mx=Math.min(100,niceCeil(Math.max(5,...l.map(x=>x.pct))));
-      return {W,H:T+rh*l.length+6,rows:l.map((x,i)=>({name:x.name,short:x.name.length>24?x.name.slice(0,23)+'…':x.name,y:T+rh*i,w:Math.max(x.pct>0?2:0,bw*x.pct/mx),pct:x.pct,tuntas:x.tuntas,nSeg:x.tgt.nSeg,on:this.cur&&x.name===this.cur.name})),L,bw,mx};
+      return {W,H:T+rh*l.length+6,rows:l.map((x,i)=>({name:x.name,short:x.name.length>24?x.name.slice(0,23)+'…':x.name,y:T+rh*i,w:Math.max(x.pct>0?2:0,bw*x.pct/mx),pct:x.pct,tuntas:x.tuntas,nSeg:x.tgt.nSeg,on:!!this.sel&&x.name===this.sel})),hasSel:l.some(x=>!!this.sel&&x.name===this.sel),L,bw,mx};
     },
     cur(){
       const l=this.stuRes.list,x=l.find(y=>y.name===this.sel)||l[0]||null;
@@ -1253,28 +1271,15 @@ Vue.createApp({
       </div>
     </div>
   </details>
-  <details class="dbox printbox">
-    <summary>Cetak &amp; Unduh</summary>
-    <div class="dbody">
-      <div class="kindrow" role="group" aria-label="Pilih laporan">
-        <button class="btn kbtn" :class="{sel:expKind==='summary'}" :aria-pressed="expKind==='summary'" :disabled="!res.list.length" @click="expKind=expKind==='summary'?'':'summary'">Ringkasan semua</button>
-        <button class="btn kbtn" :class="{sel:expKind==='daily'}" :aria-pressed="expKind==='daily'" :disabled="!dailyPages.length" @click="expKind=expKind==='daily'?'':'daily'">Ringkasan per hari</button>
-      </div>
-      <div class="fmtrow" v-if="expKind">
-        <span class="alabel">Pilih format:</span>
-        <button class="btn" @click="doPrint(expKind)" title="Buka dialog cetak; simpan sebagai PDF">PDF (Cetak)</button>
-        <button class="btn" :disabled="busy" @click="exportDocx(expKind)">Word (.docx)</button>
-        <button class="btn" @click="exportXlsx(expKind)">Excel (.xlsx)</button>
-      </div>
-      <p class="mute" v-else>Pilih laporan, lalu pilih format PDF, Word, atau Excel.</p>
-    </div>
-  </details>
-  </template>
-  <p v-if="err" class="msg err">{{err}}</p>
-  <p v-if="busy" class="msg">Menyiapkan file Word...</p>
-  <p v-if="note&&!busy" class="msg">{{note}}</p>
+  <div v-if="!rows.length" class="msg empty">
+    <b v-if="loadingGoogle">Memuat data dari Google Sheet...</b>
+    <template v-else-if="dataSource==='google'"><b>Belum ada data.</b> Data Google Sheet tidak dapat dimuat atau masih kosong. Coba "Muat ulang", atau upload file Excel (opsional) atau seret file .xlsx ke halaman ini.</template>
+    <template v-else><b>Belum ada data.</b> File Excel tidak berisi baris dengan nama murid.</template>
+  </div>
 
-  <template v-if="tab==='laporan'">
+  <details class="dbox printbox" open>
+    <summary>Cetak &amp; Unduh<span class="fbadge" v-if="activeFilters">{{activeFilters}} filter aktif</span></summary>
+    <div class="dbody">
   <div class="targetbar">
     <label for="tmode"><b>Target progress</b></label>
     <select id="tmode" v-model="targetMode">
@@ -1294,12 +1299,6 @@ Vue.createApp({
     <span class="mute tdesc">{{tgtView.desc}}</span>
   </div>
 
-  <div v-if="!rows.length" class="msg empty">
-    <b v-if="loadingGoogle">Memuat data dari Google Sheet...</b>
-    <template v-else-if="dataSource==='google'"><b>Belum ada data.</b> Data Google Sheet tidak dapat dimuat atau masih kosong. Coba "Muat ulang", atau upload file Excel (opsional) atau seret file .xlsx ke halaman ini.</template>
-    <template v-else><b>Belum ada data.</b> File Excel tidak berisi baris dengan nama murid.</template>
-  </div>
-
   <div class="filterbar" v-if="ustadzOpts.length">
     <div class="fhead"><b>Filter Ustadz</b><button class="btn small" v-if="ustadzPick.length" @click="ustadzPick=[];pick=pick.filter(d=>dateOpts.some(o=>o.key===d))">Hapus filter</button></div>
     <div class="chips">
@@ -1307,8 +1306,6 @@ Vue.createApp({
     </div>
     <p class="mute" v-if="!ustadzPick.length">Semua Ustadz ditampilkan. Pilih satu atau beberapa Ustadz untuk menyaring halaman, cetak, Word, dan Excel.</p>
   </div>
-  <p class="msg filternote" v-if="ustadzPick.length">Menampilkan kelas Ustadz: <b>{{ustadzLabel}}</b>.</p>
-
   <div class="filterbar" v-if="batchOpts.length">
     <div class="fhead"><b>Filter batch</b><button class="btn small" v-if="batchPick.length" @click="batchPick=[];pick=pick.filter(d=>dateOpts.some(o=>o.key===d))">Hapus filter</button></div>
     <div class="chips">
@@ -1316,8 +1313,6 @@ Vue.createApp({
     </div>
     <p class="mute" v-if="!batchPick.length">Semua batch ditampilkan. Pilih satu atau beberapa batch untuk menyaring data.</p>
   </div>
-  <p class="msg filternote" v-if="batchPick.length">Menampilkan data batch: <b>{{batchLabel}}</b>.</p>
-
   <div class="filterbar" v-if="dateOpts.length">
     <div class="fhead"><b>Filter tanggal</b><button class="btn small" v-if="pick.length" @click="pick=[]">Hapus filter</button></div>
     <div class="dmulti">
@@ -1335,20 +1330,44 @@ Vue.createApp({
     </div>
     <p class="mute" v-if="!pick.length">Pilih satu atau beberapa tanggal untuk melihat kegiatan pada tanggal itu. Tanpa pilihan, semua tanggal dihitung.</p>
   </div>
+      <div class="subhead">Laporan</div>
+      <div class="kindrow" role="group" aria-label="Pilih laporan">
+        <button class="btn kbtn" :class="{sel:expKind==='summary'}" :aria-pressed="expKind==='summary'" :disabled="!res.list.length" @click="expKind=expKind==='summary'?'':'summary'">Ringkasan semua</button>
+        <button class="btn kbtn" :class="{sel:expKind==='daily'}" :aria-pressed="expKind==='daily'" :disabled="!dailyPages.length" @click="expKind=expKind==='daily'?'':'daily'">Ringkasan per hari</button>
+      </div>
+      <div class="fmtrow" v-if="expKind">
+        <span class="alabel">Pilih format:</span>
+        <button class="btn" @click="doPrint(expKind)" title="Buka dialog cetak; simpan sebagai PDF">PDF (Cetak)</button>
+        <button class="btn" :disabled="busy" @click="exportDocx(expKind)">Word (.docx)</button>
+        <button class="btn" @click="exportXlsx(expKind)">Excel (.xlsx)</button>
+      </div>
+      <p class="mute" v-else>Pilih laporan, lalu pilih format PDF, Word, atau Excel.</p>
+    </div>
+  </details>
+  <p class="msg filternote" v-if="ustadzPick.length">Menampilkan kelas Ustadz: <b>{{ustadzLabel}}</b>.</p>
+
+  <p class="msg filternote" v-if="batchPick.length">Menampilkan data batch: <b>{{batchLabel}}</b>.</p>
+
   <p class="msg filternote" v-if="pick.length">Menampilkan bacaan pada tanggal: <b>{{filterLabel}}</b>. Progress dihitung hanya dari bacaan pada tanggal tersebut.<span v-if="noDateCount" style="margin-left:.35em">{{noDateCount}} baris tanpa tanggal valid tidak ikut dihitung.</span></p>
 
+  </template>
+  <p v-if="err" class="msg err">{{err}}</p>
+  <p v-if="busy" class="msg">Menyiapkan file Word...</p>
+  <p v-if="note&&!busy" class="msg">{{note}}</p>
+
+  <template v-if="tab==='laporan'">
   <section class="cmp" v-if="chartC">
     <h2>Perbandingan capaian murid</h2>
     <figure class="chart">
       <figcaption>Progress terhadap target {{tgtView.title}}</figcaption>
-      <p class="sub"><span v-if="pick.length">Hanya bacaan pada tanggal terpilih. </span>Diurutkan dari progress tertinggi. Klik baris untuk membuka detail murid.</p>
+      <p class="sub"><span v-if="pick.length">Hanya bacaan pada tanggal terpilih. </span>Diurutkan dari progress tertinggi. Klik baris untuk membuka detail murid.<span v-if="chartC.hasSel"> Disorot: murid yang dipilih di tab Murid.</span></p>
       <svg :viewBox="'0 0 '+chartC.W+' '+chartC.H" role="img" :aria-label="'Perbandingan progress '+chartC.rows.length+' murid'">
         <g v-for="r in chartC.rows" :key="r.name" class="row" @click="if(curName!==r.name)stuBatchPick=[];sel=r.name;setTab('murid')">
           <title>{{r.name}}: {{r.pct}}%, {{r.tuntas}} dari {{r.nSeg}} surat tuntas</title>
           <rect x="0" :y="r.y" :width="chartC.W" height="28" fill="transparent"/>
           <text class="nm" x="0" :y="r.y+18" :font-weight="r.on?700:400">{{r.short}}</text>
           <rect class="trk" :x="chartC.L" :y="r.y+6" :width="chartC.bw" height="16" rx="3"/>
-          <rect class="brr" :class="{dim:!r.on}" :x="chartC.L" :y="r.y+6" :width="r.w" height="16" rx="3"/>
+          <rect class="brr" :class="{dim:chartC.hasSel&&!r.on}" :x="chartC.L" :y="r.y+6" :width="r.w" height="16" rx="3"/>
           <text class="val" :x="chartC.L+chartC.bw+8" :y="r.y+18">{{r.pct}}%</text>
           <text :x="chartC.W" :y="r.y+18" text-anchor="end">{{r.tuntas}} / {{r.nSeg}} surat</text>
         </g>
@@ -1411,7 +1430,23 @@ Vue.createApp({
       <div class="stat"><div class="big">{{cur.log.length}}</div><div class="mute">setoran, terakhir {{fd(cur.last)}}</div></div>
       <div class="stat"><div class="big">{{cur.hadir}}</div><div class="mute">tanggal hadir</div></div>
     </div>
-    <div class="bar"><i :style="{width:cur.pct+'%'}"></i></div>
+    <figure class="chart piebox">
+      <figcaption>Progress Capaian</figcaption>
+      <div class="piewrap">
+        <svg class="pie" viewBox="0 0 120 120" role="img" :aria-label="'Progress capaian '+cur.name+': '+cur.pct+' persen, '+cur.total+' dari '+cur.tgt.total+' ayat'">
+          <circle class="pie-bg" cx="60" cy="60" r="46" fill="none" stroke-width="16"/>
+          <circle class="pie-fg" cx="60" cy="60" r="46" fill="none" stroke-width="16" stroke-linecap="butt" transform="rotate(-90 60 60)" :stroke-dasharray="(Math.min(100,cur.pct)/100*289.03)+' 289.03'"/>
+          <text x="60" y="60" text-anchor="middle" class="pie-pct">{{cur.pct}}%</text>
+          <text x="60" y="76" text-anchor="middle" class="pie-sub">tercapai</text>
+        </svg>
+        <ul class="pielegend">
+          <li><i class="dot on"></i><span>Ayat terbaca</span><b>{{cur.total}}</b></li>
+          <li><i class="dot"></i><span>Belum dibaca</span><b>{{Math.max(0,cur.tgt.total-cur.total)}}</b></li>
+          <li class="tot"><span>Target {{cur.tgt.name}}</span><b>{{cur.tgt.total}} ayat</b></li>
+          <li><i class="dot sq on"></i><span>Surat tuntas</span><b>{{cur.tuntas}} dari {{cur.tgt.nSeg}}</b></li>
+        </ul>
+      </div>
+    </figure>
 
     <p v-if="!cur.log.length" class="msg empty">{{emptyMsg(cur)}}</p>
     <template v-if="cur.log.length&&chartA">
