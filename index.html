@@ -768,10 +768,10 @@ function rkComboSvg(g){
   return {svg:o+'</svg>',w,h:H};
 }
 function rkTrendSvg(g){
-  const t=g.trend,n=t.length,slot=n<=8?52:34,L=34,R=34,T=16,B=54,H=190,w=Math.max(260,n*slot+L+R),ph=H-T-B;
+  const t=g.trend,n=t.length,slot=n<=8?56:36,L=34,R=76,T=16,B=84,H=220,w=Math.max(260,n*slot+L+R),ph=H-T-B;
   const mx=Math.max(...t.map(x=>x.avg),1),ym=mx>=100?100:Math.min(100,Math.max(10,Math.ceil(mx/10)*10));
   const Y=v=>T+ph*(1-Math.min(ym,v)/ym),X=i=>L+slot*i+slot/2;
-  let o='<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+H+'" viewBox="0 0 '+w+' '+H+'" role="img" aria-label="'+esc('Rata-rata progress kelas per tanggal, '+n+' tanggal')+'" style="font-family:'+RK_FONT+'">';
+  let o='<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+H+'" viewBox="0 0 '+w+' '+H+'" role="img" aria-label="'+esc('Rata-rata progress kelas per sesi kelas, '+n+' sesi')+'" style="font-family:'+RK_FONT+'">';
   [0,.25,.5,.75,1].forEach(k=>{const v=Math.round(ym*k*10)/10,y=Y(v);o+='<line x1="'+L+'" x2="'+(w-R)+'" y1="'+y+'" y2="'+y+'" stroke="#e9edef"/><text x="'+(L-5)+'" y="'+(y+3)+'" text-anchor="end" font-size="10" fill="#667781">'+v+'%</text>'});
   const pts=t.map((x,i)=>X(i)+','+Y(x.avg));
   if(n>1)o+='<polygon points="'+X(0)+','+Y(0)+' '+pts.join(' ')+' '+X(n-1)+','+Y(0)+'" fill="#00a884" fill-opacity=".12"/>';
@@ -779,6 +779,20 @@ function rkTrendSvg(g){
   t.forEach((x,i)=>{o+='<circle cx="'+X(i)+'" cy="'+Y(x.avg)+'" r="3.5" fill="#fff" stroke="#00a884" stroke-width="2"><title>'+esc(x.label+': '+x.avg+'%')+'</title></circle>'
     +'<text x="'+X(i)+'" y="'+(Y(x.avg)-8)+'" text-anchor="middle" font-size="10" font-weight="600" fill="#111b21">'+x.avg+'</text>'
     +'<text transform="translate('+(X(i)+3)+','+(T+ph+12)+') rotate(40)" font-size="10" fill="#667781">'+esc(x.label)+'</text>'});
+  return {svg:o+'</svg>',w,h:H};
+}
+const RK_ATT=[['Hadir','hadir','#00a884'],['Sakit','sakit','#ffb02e'],['Tanpa kabar','kabar','#e26ab6'],['Tanpa data','kosong','#c5ccd0']];
+function rkAttBarsSvg(g){
+  const t=g.attDates,n=t.length,slot=n<=8?56:36,L=38,R=76,T=16,B=84,H=220,w=Math.max(260,n*slot+L+R),ph=H-T-B;
+  const Y=v=>T+ph*(1-v/100);
+  let o='<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+H+'" viewBox="0 0 '+w+' '+H+'" role="img" aria-label="'+esc('Persentase murid hadir per sesi kelas, '+n+' sesi')+'" style="font-family:'+RK_FONT+'">';
+  [0,25,50,75,100].forEach(v=>{const y=Y(v);o+='<line x1="'+L+'" x2="'+(w-R)+'" y1="'+y+'" y2="'+y+'" stroke="#e9edef"/><text x="'+(L-5)+'" y="'+(y+3)+'" text-anchor="end" font-size="10" fill="#667781">'+v+'%</text>'});
+  t.forEach((x,i)=>{
+    const cx=L+slot*i+slot/2,bw=Math.min(30,slot*.62),tot=x.n||1;let acc=0;
+    RK_ATT.forEach(([lab,k,c])=>{if(!x[k])return;const p=x[k]/tot*100,y1=Y(acc+p),y0=Y(acc);o+='<rect x="'+(cx-bw/2)+'" y="'+y1+'" width="'+bw+'" height="'+(y0-y1)+'" fill="'+c+'"><title>'+esc(x.label+' - '+lab+': '+x[k]+' dari '+x.n+' murid')+'</title></rect>';acc+=p});
+    o+='<text x="'+cx+'" y="'+(Y(Math.min(100,acc))-4)+'" text-anchor="middle" font-size="10" font-weight="700" fill="#111b21">'+x.pct+'%</text>'
+      +'<text transform="translate('+(cx+3)+','+(T+ph+12)+') rotate(40)" font-size="10" fill="#667781">'+esc(x.label)+'</text>';
+  });
   return {svg:o+'</svg>',w,h:H};
 }
 async function svgToPng(svg,w,h){
@@ -1017,10 +1031,12 @@ Vue.createApp({
         const ayat=L.reduce((a,x)=>a+x.total,0),tgtTotal=L.reduce((a,x)=>a+x.tgt.total,0);
         const ss=sess.filter(p=>p.uk===normKelas(o.kelas)&&(p.batch||'')===o.batch);
         const nset=new Set(L.map(x=>x.name)),grows=this.rekapRows.filter(r=>nset.has(String(r.murid||'').trim()));
-        const dmap=new Map();ss.forEach(p=>{if(!dmap.has(p.dk))dmap.set(p.dk,p.dshort)});
-        const trend=[...dmap.entries()].sort((a,b)=>a[0]<b[0]?-1:1).map(([dk,label])=>{
-          const an=analyze(grows.filter(r=>{const k=dkey(r.tgl);return k&&k<=dk}),[...nset],this.tgtOf).list.filter(x=>nset.has(x.name));
-          return {dk,label,avg:an.length?Math.round(an.reduce((a,x)=>a+x.pct,0)/an.length*10)/10:0};
+        const ssa=[...ss].sort((a,b)=>a.dk<b.dk?-1:a.dk>b.dk?1:((a.jam||'')<(b.jam||'')?-1:(a.jam||'')>(b.jam||'')?1:(a.ln<b.ln?-1:1)));
+        const slab=p=>p.dshort+(p.jam?' \u00b7 '+p.jam:'');
+        const attDates=ssa.map(p=>{const hd=p.cnt.baca+p.cnt.hadir,tot=hd+p.cnt.sakit+p.cnt.kabar+p.cnt.kosong;return {key:p.key,dk:p.dk,label:slab(p),tgl:p.dshort,jam:p.jam||'-',n:tot,hadir:hd,sakit:p.cnt.sakit,kabar:p.cnt.kabar,kosong:p.cnt.kosong,pct:pc(hd,tot)}});
+        const trend=ssa.map(p=>{
+          const an=analyze(grows.filter(r=>{const k=dkey(r.tgl);return k&&(k<p.dk||(k===p.dk&&(r.jam||'')<=(p.jam||'')))}),[...nset],this.tgtOf).list.filter(x=>nset.has(x.name));
+          return {key:p.key,dk:p.dk,label:slab(p),tgl:p.dshort,jam:p.jam||'-',avg:an.length?Math.round(an.reduce((a,x)=>a+x.pct,0)/an.length*10)/10:0};
         });
         const t={baca:0,hadir:0,sakit:0,kabar:0,kosong:0};
         ss.forEach(p=>Object.keys(t).forEach(k=>{t[k]+=p.cnt[k]}));
@@ -1028,7 +1044,7 @@ Vue.createApp({
         const th={hadir:t.baca+t.hadir,sakit:t.sakit,kabar:t.kabar,kosong:t.kosong};
         const att=[['Hadir','hadir','#00a884'],['Sakit','sakit','#ffb02e'],['Tanpa kabar','kabar','#e26ab6'],['Tanpa data','kosong','#c5ccd0']].map(([label,k,color])=>({label,n:th[k],pct:pc(th[k],slots),color}));
         return {key:o.key,batch:o.batch,kelas:o.kelas,label:[o.batch?'Batch '+o.batch:'',o.kelas].filter(Boolean).join(' - ')||'Tanpa batch/kelas',
-          n,stu,trend,avg:n?Math.round(L.reduce((a,x)=>a+x.pct,0)/n*10)/10:0,tuntas:L.filter(x=>x.pct>=100).length,bk,ayat,tgtTotal,
+          n,stu,trend,attDates,avg:n?Math.round(L.reduce((a,x)=>a+x.pct,0)/n*10)/10:0,tuntas:L.filter(x=>x.pct>=100).length,bk,ayat,tgtTotal,
           nSesi:ss.length,slots,att,sessions:ss.map(p=>({p,tgl:p.dshort,jam:p.jam||'-',lokasi:p.lokasi||'-',n:p.nMurid,hadir:p.cnt.baca+p.cnt.hadir,sakit:p.cnt.sakit,kabar:p.cnt.kabar,kosong:p.cnt.kosong})),hadirPct:pc(t.baca+t.hadir,slots),avgHadir:ss.length?Math.round((t.baca+t.hadir)/ss.length*10)/10:0,
           tgtName:[...new Set(L.map(x=>x.tgt.name))].join('; ')};
       });
@@ -1180,6 +1196,7 @@ Vue.createApp({
     svgAtt(g){return rkAttSvg(g)},
     svgCombo(g){return rkComboSvg(g).svg},
     svgTrend(g){return rkTrendSvg(g).svg},
+    svgAttBars(g){return rkAttBarsSvg(g).svg},
     statOf(key){return this.rekapGroups.find(x=>x.key===key)},
     fontStep(d){this.fontAdj=Math.max(-5,Math.min(5,Math.round((this.fontAdj+d*0.25)*4)/4))},
     applyFont(){document.documentElement.style.setProperty('--fadj',(Number(this.fontAdj)||0)+'pt')},
@@ -1310,8 +1327,12 @@ Vue.createApp({
         rows.push([gr.list.length+' murid, rata-rata progress '+gr.avg+'%.'+(this.pick.length?' '+gr.hadir+' murid hadir, '+gr.active+' di antaranya setor bacaan pada tanggal terpilih.':'')]);
         const st=this.withStats?this.statOf(gr.key):null;
         if(st&&st.trend.length){
-          rows.push([],['Rata-rata Progress per Tanggal'],['Tanggal','Rata-rata Progress (%)']);
-          st.trend.forEach(x=>rows.push([x.label,x.avg]));
+          rows.push([],['Rata-rata Progress per Sesi Kelas'],['Tanggal','Jam','Rata-rata Progress (%)']);
+          st.trend.forEach(x=>rows.push([x.tgl,x.jam,x.avg]));
+        }
+        if(st&&st.attDates.length){
+          rows.push([],['Kehadiran per Sesi Kelas'],['Tanggal','Jam','Murid','Hadir','Hadir (%)','Sakit','Tanpa Kabar','Tanpa Data']);
+          st.attDates.forEach(x=>rows.push([x.tgl,x.jam,x.n,x.hadir,x.pct,x.sakit,x.kabar,x.kosong]));
         }
         if(st&&st.sessions.length){
           rows.push([],['Daftar Sesi Kelas'],['Tanggal','Jam','Lokasi','Murid','Hadir','Sakit','Tanpa Kabar','Tanpa Data']);
@@ -1391,8 +1412,7 @@ Vue.createApp({
       const cell=(w,kids)=>new d.TableCell({width:{size:w,type:d.WidthType.DXA},borders:nb,margins:{top:40,bottom:40,left:60,right:120},children:kids});
       const row=async(svg,sz,head,lines)=>[wP(head,{bold:true,after:40,keepNext:true}),new d.Paragraph({spacing:{after:40},children:[await png(svg,sz,sz)]}),...lines.map(t=>wP(t,{after:20}))];
       const left=await row(rkAvgSvg(g,110),110,'Progress capaian',['Rata-rata progress '+g.avg+'%','Murid tuntas: '+g.tuntas+' dari '+g.n,'Ayat terbaca: '+g.ayat.toLocaleString('id-ID')+' dari '+g.tgtTotal.toLocaleString('id-ID')+' (tanpa hitung ganda)']);
-      const right=g.nSesi?await row(rkAttSvg(g,110),110,'Kehadiran',[...g.att.filter(x=>x.n).map(x=>x.label+' '+x.pct+'%'),g.nSesi+' sesi, rata-rata '+g.avgHadir+' murid hadir per sesi']):[wP('Kehadiran',{bold:true,after:40}),wP('Belum ada sesi tercatat.')];
-      ch.push(new d.Table({width:{size:10206,type:d.WidthType.DXA},columnWidths:[4900,5306],borders:{top:none,bottom:none,left:none,right:none,insideHorizontal:none,insideVertical:none},rows:[new d.TableRow({cantSplit:true,children:[cell(4900,left),cell(5306,right)]})]}));
+      ch.push(new d.Table({width:{size:10206,type:d.WidthType.DXA},columnWidths:[10206],borders:{top:none,bottom:none,left:none,right:none,insideHorizontal:none,insideVertical:none},rows:[new d.TableRow({cantSplit:true,children:[cell(10206,left)]})]}));
       if(g.stu.length){
         const c=rkComboSvg(g),sc=Math.min(1,660/c.w),w=Math.round(c.w*sc),h=Math.round(c.h*sc);
         ch.push(wP('Sebaran progress per murid',{bold:true,before:120,after:40,keepNext:true}));
@@ -1401,9 +1421,15 @@ Vue.createApp({
       }
       if(g.trend.length){
         const c=rkTrendSvg(g),sc=Math.min(1,660/c.w),w=Math.round(c.w*sc),h=Math.round(c.h*sc);
-        ch.push(wP('Rata-rata progress per tanggal',{bold:true,before:120,after:40,keepNext:true}));
+        ch.push(wP('Rata-rata progress per sesi kelas',{bold:true,before:120,after:40,keepNext:true}));
         ch.push(new d.Paragraph({spacing:{after:40},keepNext:true,children:[await png(c.svg,w,h)]}));
-        ch.push(wP('Rata-rata progress kelas, kumulatif sampai tanggal sesi.',{after:120,color:WMUTE,size:18}));
+        ch.push(wP('Rata-rata progress kelas, kumulatif sampai sesi itu (tanggal dan jam).',{after:120,color:WMUTE,size:18}));
+      }
+      if(g.attDates.length){
+        const c=rkAttBarsSvg(g),sc=Math.min(1,660/c.w),w=Math.round(c.w*sc),h=Math.round(c.h*sc);
+        ch.push(wP('Persentase kehadiran per sesi kelas',{bold:true,before:120,after:40,keepNext:true}));
+        ch.push(new d.Paragraph({spacing:{after:40},keepNext:true,children:[await png(c.svg,w,h)]}));
+        ch.push(wP(g.att.filter(x=>x.n).map(x=>x.label+' '+x.pct+'%').join(', ')+'. '+g.nSesi+' sesi, rata-rata '+g.avgHadir+' murid hadir per sesi. Angka di atas batang: persentase murid hadir pada sesi itu.',{after:120,color:WMUTE,size:18}));
       }
       return ch;
     },
@@ -1834,16 +1860,15 @@ Vue.createApp({
       <h3 class="rkh">Sebaran progress per murid</h3>
       <div class="rkscroll" v-if="g.stu.length" v-html="svgCombo(g)"></div>
       <ul class="leg"><li><i style="background:#00a884"></i>Progress murid (batang)</li><li><i style="background:#128c7e"></i>Garis sebaran</li><li><i style="background:#e26ab6"></i>Rata-rata {{g.avg}}%</li></ul>
-      <h3 class="rkh">Rata-rata progress per tanggal</h3>
+      <h3 class="rkh">Rata-rata progress per sesi kelas</h3>
       <div class="rkscroll" v-if="g.trend.length" v-html="svgTrend(g)"></div>
-      <ul class="leg" v-if="g.trend.length"><li><i style="background:#00a884"></i>Rata-rata progress kelas, kumulatif sampai tanggal itu</li></ul>
+      <ul class="leg" v-if="g.trend.length"><li><i style="background:#00a884"></i>Rata-rata progress kelas, kumulatif sampai sesi itu</li></ul>
       <p class="mute" v-else>Belum ada sesi tercatat.</p>
-      <h3 class="rkh">Kehadiran</h3>
+      <h3 class="rkh">Persentase kehadiran per sesi kelas</h3>
       <template v-if="g.nSesi">
-        <div class="rkrow">
-          <div class="rkpie" v-html="svgAtt(g)"></div>
-          <ul class="leg col"><li v-for="x in g.att" :key="x.label" v-show="x.n"><i :style="{background:x.color}"></i>{{x.label}} <b>{{x.pct}}%</b></li></ul>
-        </div>
+        <div class="rkscroll" v-html="svgAttBars(g)"></div>
+        <ul class="leg"><li v-for="x in g.att" :key="x.label" v-show="x.n"><i :style="{background:x.color}"></i>{{x.label}} <b>{{x.pct}}%</b></li></ul>
+        <p class="mute rkline">Angka di atas batang: persentase murid yang hadir pada sesi itu (hadir dibanding seluruh murid sesi).</p>
         <p class="mute rkline">{{g.nSesi}} sesi &middot; rata-rata {{g.avgHadir}} murid hadir per sesi.</p>
       </template>
       <p class="mute" v-else>Belum ada sesi tercatat.</p>
@@ -2005,15 +2030,16 @@ Vue.createApp({
       <div class="rkp2">
         <div><h3>Progress capaian</h3><div class="rkrow"><div class="rkpie" v-html="svgAvg(statOf(gr.key))"></div>
           <div class="rktxt"><b>Rata-rata progress {{statOf(gr.key).avg}}%</b><span>Murid tuntas: {{statOf(gr.key).tuntas}} dari {{statOf(gr.key).n}}</span><span>Ayat terbaca: {{statOf(gr.key).ayat.toLocaleString('id-ID')}} dari {{statOf(gr.key).tgtTotal.toLocaleString('id-ID')}} (tanpa hitung ganda)</span></div></div></div>
-        <div><h3>Kehadiran</h3><div class="rkrow" v-if="statOf(gr.key).nSesi"><div class="rkpie" v-html="svgAtt(statOf(gr.key))"></div>
-          <div class="rktxt"><span v-for="x in statOf(gr.key).att" :key="x.label" v-show="x.n">{{x.label}} <b>{{x.pct}}%</b></span><span>{{statOf(gr.key).nSesi}} sesi, rata-rata {{statOf(gr.key).avgHadir}} murid hadir per sesi</span></div></div><p v-else>Belum ada sesi tercatat.</p></div>
       </div>
       <h3>Sebaran progress per murid</h3>
       <div class="rkscroll" v-if="statOf(gr.key).stu.length" v-html="svgCombo(statOf(gr.key))"></div>
       <p class="mute">Batang: progress tiap murid. Garis: sebaran. Garis putus-putus: rata-rata kelas {{statOf(gr.key).avg}}%.</p>
-      <template v-if="statOf(gr.key).trend.length"><h3>Rata-rata progress per tanggal</h3>
+      <template v-if="statOf(gr.key).trend.length"><h3>Rata-rata progress per sesi kelas</h3>
       <div class="rkscroll" v-html="svgTrend(statOf(gr.key))"></div>
-      <p class="mute">Rata-rata progress kelas, kumulatif sampai tanggal sesi.</p></template>
+      <p class="mute">Rata-rata progress kelas, kumulatif sampai sesi itu (tanggal dan jam).</p></template>
+      <template v-if="statOf(gr.key).attDates.length"><h3>Persentase kehadiran per sesi kelas</h3>
+      <div class="rkscroll" v-html="svgAttBars(statOf(gr.key))"></div>
+      <p class="mute"><span v-for="x in statOf(gr.key).att" :key="x.label" v-show="x.n" style="margin-right:10px">{{x.label}} <b>{{x.pct}}%</b></span> {{statOf(gr.key).nSesi}} sesi, rata-rata {{statOf(gr.key).avgHadir}} murid hadir per sesi. Angka di atas batang: persentase murid hadir pada sesi itu.</p></template>
     </div>
     <div class="tablewrap" style="margin-top:12px"><table class="sumtable">
       <colgroup><col style="width:21%"><col style="width:12%"><col style="width:18%"><col style="width:9%"><col style="width:9%"><col style="width:8%"><col style="width:7%"><col style="width:16%"></colgroup>
