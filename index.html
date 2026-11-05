@@ -177,6 +177,7 @@ body.sheetopen{overflow:hidden}
 .imgfail{border:1px dashed var(--line);border-radius:6px;padding:14px;font-size:12px;color:var(--mute);margin:0}
 @page{margin:14mm}
 @page summary{size:A4 landscape;margin:12mm}
+@page rekap{size:A4 portrait;margin:12mm}
 @page daily{size:A4 portrait;margin:.3in 12mm}
 .piebox{margin:12px 0}
 .piebox figcaption{text-align:center}
@@ -202,8 +203,17 @@ body.sheetopen{overflow:hidden}
 body{background:#fff}
 .studenthead h1{font-weight:700}
 .bar,.bar i,.tile{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.rkprint h3{font-size:14px;margin:8px 0 4px}
+.rkp2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.rkrow{display:flex;align-items:center;gap:16px;margin:4px 0}
+.rkpie{width:104px;height:104px;flex:none}
+.rktxt{display:flex;flex-direction:column;gap:3px;font-size:12px;min-width:0}
+.rkprint svg{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 body[data-print="summary"] .wrap>:not(.summary-print){display:none}
 body[data-print="summary"] .summary-print{display:block;page:summary}
+body[data-print="summary"] .summary-print.rekap{page:rekap}
+.summary-print.rekap .sumtable{font-size:10px}
+.summary-print.rekap .sumtable th,.summary-print.rekap .sumtable td{padding:5px 4px;white-space:normal;line-height:1.2}
 body[data-print="daily"] .wrap>:not(.daily-print){display:none}
 body[data-print="daily"] .daily-print{display:block;page:daily}
 .noprint{display:none}
@@ -262,6 +272,56 @@ td.link{color:#008069;font-weight:500}
 .studenthead h1{color:#111b21}
 }
 @media screen{
+.rkgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;margin-top:10px}
+.rkcard{background:#fff;border-radius:14px;padding:14px 16px;box-shadow:0 1px .5px rgba(11,20,26,.13)}
+.rkhead{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.rkhead div{display:flex;flex-direction:column;min-width:0}
+.rkhead small{font-size:12.5px}
+.rkh{font-size:14px;margin:14px 0 6px;color:#008069;font-weight:600}
+.rkbig{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.rkbig b{font-size:26px;line-height:1.1}
+.rkbig span{font-size:13px}
+.rkline{font-size:12.5px;margin:6px 0}
+.rkcap{font-size:12.5px;margin:8px 0 4px;color:#54656f}
+.pagetitle{font-size:18px;margin:4px 2px 10px;color:#111b21}
+.rkscroll{overflow-x:auto;margin:4px -4px 0;padding:0 4px}
+.rkcombo{display:block}
+.rkcombo text.ax{font-size:10px;fill:#667781}
+.rkcombo text.bv{font-size:10px;font-weight:600;fill:#111b21}
+.rkprint h3{font-size:14px;margin:8px 0 4px}
+.rkp2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.rkprint svg{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.rkdet{margin-top:12px;border-top:1px solid #e9edef;padding-top:4px}
+.rkdet>summary{cursor:pointer;padding:8px 0;font-weight:600;color:#008069;font-size:14px;list-style:none;display:flex;gap:8px;align-items:center}
+.rkdet>summary::-webkit-details-marker{display:none}
+.rkdet>summary::before{content:"\25B8";transition:transform .15s}
+.rkdet[open]>summary::before{transform:rotate(90deg)}
+.rksess{width:100%;border-collapse:collapse;font-size:12.5px}
+.rksess th{text-align:left;color:#54656f;font-weight:600;padding:6px 6px;border-bottom:1px solid #e9edef;white-space:nowrap}
+.rksess td{padding:7px 6px;border-bottom:1px solid #f0f2f5}
+.rksess .num{text-align:right}
+.rkclick{cursor:pointer}
+.rkclick:hover,.rkclick:focus-visible{background:#f0f2f5;outline:none}
+.rkrow{display:flex;align-items:center;gap:16px;margin:4px 0}
+.rkpie{width:104px;height:104px;flex:none}
+.rkpie text.pie-pct{font-size:20px;font-weight:700;fill:#111b21}
+.rkpie text.pie-sub{font-size:9px;fill:#667781}
+.rktxt{display:flex;flex-direction:column;gap:4px;font-size:13px;min-width:0}
+.leg.col{flex-direction:column;gap:5px;margin:0}
+.sbar{display:flex;height:10px;border-radius:6px;overflow:hidden;background:#e9edef}
+.sbar i{display:block;height:100%}
+.leg{list-style:none;display:flex;flex-wrap:wrap;gap:3px 12px;margin:6px 0 0;padding:0;font-size:12.5px}
+.leg li{display:inline-flex;align-items:center;gap:5px}
+.leg li i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.dbox>summary .sic{flex:none}
+.hbrand{display:flex;align-items:center;gap:8px}
+.hbtn{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border:0;border-radius:50%;background:transparent;color:#fff;cursor:pointer}
+.hbtn:hover{background:rgba(255,255,255,.15)}
+.hbtn:focus-visible{outline:2px solid #fff}
+.hmenubtn{margin-left:auto}
+.hmenu{position:fixed;right:12px;top:64px;min-width:180px;background:#fff;border-radius:10px;box-shadow:0 4px 18px rgba(11,20,26,.3);padding:6px;display:flex;flex-direction:column;z-index:60}
+.hmenu button{font:inherit;text-align:left;background:none;border:0;border-radius:8px;padding:11px 14px;cursor:pointer;color:#111b21}
+.hmenu button:hover,.hmenu button:focus-visible,.hmenu button.on{background:#f0f2f5}
 .sesicount{margin:8px 2px}
 .sesilist{display:flex;flex-direction:column;gap:6px}
 .datepill{align-self:center;background:#fff;color:#54656f;font-size:12.5px;padding:5px 12px;border-radius:8px;box-shadow:0 1px .5px rgba(11,20,26,.13);margin:12px 0 4px}
@@ -659,14 +719,58 @@ function wDoc(children,landscape,vm){
     sections:[{properties:{page:{size:{width:11906,height:16838,orientation:landscape?d.PageOrientation.LANDSCAPE:d.PageOrientation.PORTRAIT},margin:{top:vm==null?850:vm,bottom:vm==null?850:vm,left:850,right:850,header:vm==null?708:0,footer:vm==null?708:0}}},children}]});
 }
 
+const RK_FONT="'Segoe UI',Arial,Helvetica,sans-serif";
+const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const RK_C=289.03;
+function rkArcs(list){
+  const tot=list.reduce((a,x)=>a+x.n,0);let cum=0;
+  return tot?list.filter(x=>x.n).map(x=>{const len=x.n/tot*RK_C,a={color:x.color,da:len+' '+(RK_C-len),off:-cum};cum+=len;return a}):[];
+}
+function rkDonut(segs,big,sub,size,label){
+  const ring=(c,extra)=>'<circle cx="60" cy="60" r="46" fill="none" stroke="'+c+'" stroke-width="16" transform="rotate(-90 60 60)"'+extra+'/>';
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="'+size+'" height="'+size+'" role="img" aria-label="'+esc(label)+'" style="font-family:'+RK_FONT+'">'
+    +ring('#e9edef','')+segs.map(a=>ring(a.color,' stroke-dasharray="'+a.da+'"'+(a.off?' stroke-dashoffset="'+a.off+'"':''))).join('')
+    +'<text x="60" y="'+(sub?58:65)+'" text-anchor="middle" font-size="20" font-weight="700" fill="#111b21">'+esc(big)+'</text>'
+    +(sub?'<text x="60" y="74" text-anchor="middle" font-size="9" fill="#667781">'+esc(sub)+'</text>':'')+'</svg>';
+}
+const rkAvgSvg=(g,size)=>rkDonut([{color:'#00a884',da:(Math.min(100,g.avg)/100*RK_C)+' '+RK_C,off:0}],g.avg+'%','',size||104,'Rata-rata progress '+g.avg+' persen');
+const rkAttSvg=(g,size)=>rkDonut(rkArcs(g.att),g.hadirPct+'%','hadir',size||104,g.hadirPct+' persen hadir');
+function rkComboSvg(g){
+  const n=g.stu.length,slot=n<=8?44:28,L=34,R=34,T=12,B=50,H=190,w=Math.max(260,n*slot+L+R),ph=H-T-B;
+  const mx=Math.max(...g.stu.map(x=>x.pct),g.avg,1),ym=mx>=100?100:Math.min(100,Math.max(20,Math.ceil(mx/10)*10));
+  const Y=v=>T+ph*(1-Math.min(ym,v)/ym);
+  const bars=g.stu.map((x,i)=>{const cx=L+slot*i+slot/2,bw=Math.min(26,slot*.62);return {x:cx-bw/2,y:Y(x.pct),w:bw,h:T+ph-Y(x.pct),cx,cy:Y(x.pct),name:x.name,pct:x.pct,lab:x.name.split(/\s+/)[0].slice(0,9)}});
+  let o='<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+H+'" viewBox="0 0 '+w+' '+H+'" role="img" aria-label="'+esc('Progress '+n+' murid, rata-rata '+g.avg+' persen')+'" style="font-family:'+RK_FONT+'">';
+  [0,.25,.5,.75,1].forEach(k=>{const v=Math.round(ym*k*10)/10,y=Y(v);o+='<line x1="'+L+'" x2="'+(w-R)+'" y1="'+y+'" y2="'+y+'" stroke="#e9edef"/><text x="'+(L-5)+'" y="'+(y+3)+'" text-anchor="end" font-size="10" fill="#667781">'+v+'%</text>'});
+  bars.forEach(b=>{o+='<rect x="'+b.x+'" y="'+b.y+'" width="'+b.w+'" height="'+Math.max(b.h,0)+'" rx="3" fill="#00a884" fill-opacity=".85"><title>'+esc(b.name+': '+b.pct+'%')+'</title></rect>'
+    +'<text x="'+b.cx+'" y="'+(b.cy-4)+'" text-anchor="middle" font-size="10" font-weight="600" fill="#111b21">'+Math.round(b.pct)+'</text>'
+    +'<text transform="translate('+(b.cx+3)+','+(T+ph+10)+') rotate(40)" font-size="10" fill="#667781">'+esc(b.lab)+'</text>'});
+  o+='<line x1="'+L+'" x2="'+(w-R)+'" y1="'+Y(g.avg)+'" y2="'+Y(g.avg)+'" stroke="#e26ab6" stroke-width="1.5" stroke-dasharray="5 4"/>';
+  o+='<polyline points="'+bars.map(b=>b.cx+','+b.cy).join(' ')+'" fill="none" stroke="#128c7e" stroke-width="2" stroke-linejoin="round"/>';
+  bars.forEach(b=>{o+='<circle cx="'+b.cx+'" cy="'+b.cy+'" r="3" fill="#fff" stroke="#128c7e" stroke-width="2"/>'});
+  return {svg:o+'</svg>',w,h:H};
+}
+async function svgToPng(svg,w,h){
+  const sc=2,url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml;charset=utf-8'}));
+  try{
+    const img=new Image();
+    await new Promise((ok,no)=>{img.onload=ok;img.onerror=()=>no(new Error('Gagal membuat gambar grafik'));img.src=url});
+    const c=document.createElement('canvas');c.width=w*sc;c.height=h*sc;
+    const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);
+    const out=await new Promise(res=>c.toBlob(res,'image/png'));
+    return new Uint8Array(await out.arrayBuffer());
+  }finally{URL.revokeObjectURL(url)}
+}
+
 Vue.createApp({
-  data(){return{logoSrc:LOGO_DRIVE_ID?('https://drive.google.com/thumbnail?id='+LOGO_DRIVE_ID+'&sz=w800'):LOGO_DATA,logoData:LOGO_DATA,rows:[],src:'Memuat Google Sheet...',dataSource:'google',googleRows:[],gSheets:LOG_SHEETS.map((x,i)=>({label:'Sheet '+(i+1),state:'loading',n:0,err:''})),uploadName:'',err:'',sel:null,pick:[],printDate:'',targetMode:'settings',juzSel:[30],batchPick:[],ustadzPick:[],settings:{state:'loading',err:'',classes:[],students:[]},juzOpen:false,comboOpen:false,comboQ:'',comboHi:0,busy:false,note:'',photos:[],photoState:'loading',photoErr:'',badImg:{},booting:true,expKind:'',tab:'laporan',sesiMode:false,sKind:'',sessMenu:false,onlyPages:null,fkOver:'',sU:[],sB:[],sD:[],sDateOpen:false,sDateQ:'',sesiLimit:20,stuBatchPick:[],dateOpen:false,dateQ:'',sessOpen:false,sess:null,sessStudent:''}},
+  data(){return{logoSrc:LOGO_DRIVE_ID?('https://drive.google.com/thumbnail?id='+LOGO_DRIVE_ID+'&sz=w800'):LOGO_DATA,logoData:LOGO_DATA,rows:[],src:'Memuat Google Sheet...',dataSource:'google',googleRows:[],gSheets:LOG_SHEETS.map((x,i)=>({label:'Sheet '+(i+1),state:'loading',n:0,err:''})),uploadName:'',err:'',sel:null,pick:[],printDate:'',targetMode:'settings',juzSel:[30],batchPick:[],ustadzPick:[],settings:{state:'loading',err:'',classes:[],students:[]},juzOpen:false,comboOpen:false,comboQ:'',comboHi:0,busy:false,note:'',photos:[],photoState:'loading',photoErr:'',badImg:{},booting:true,expKind:'',tab:'sesi',withStats:false,hmenu:false,rU:[],rB:[],sKind:'',sessMenu:false,onlyPages:null,fkOver:'',sU:[],sB:[],sD:[],sDateOpen:false,sDateQ:'',sesiLimit:20,stuBatchPick:[],dateOpen:false,dateQ:'',sessOpen:false,sess:null,sessStudent:''}},
   mounted(){
     this.reloadAll(true);
-    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&this.sessOpen)this.closeSession()});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(this.sessOpen)this.closeSession();else this.hmenu=false}});
     document.addEventListener('click',e=>{
       if(!e.target.closest('.jmulti'))this.juzOpen=false;
       if(!e.target.closest('.printmenu'))this.sessMenu=false;
+      if(!e.target.closest('.hmenuwrap'))this.hmenu=false;
       if(!e.target.closest('.dmulti')){this.dateOpen=false;this.sDateOpen=false}
       if(!e.target.closest('.combo'))this.closeCombo();
     });
@@ -773,7 +877,7 @@ Vue.createApp({
         const ph=(this.photoMap[g.dk+'|'+kn]||[]).filter(p=>!p.lok||!g.ln||p.lok===g.ln).map(p=>p.id);
         const tgtDesc=lite?'':[...new Map(cum.map(c=>[c.tgt.key,c.tgt])).values()].map(t=>t.name+' ('+t.total+' ayat)').join('; ');
         const bc=new Map();g.rows.forEach(r=>{const b=String(r.batch==null?'':r.batch).trim();if(b)bc.set(b,(bc.get(b)||0)+1)});const batch=[...bc.entries()].sort((x,y)=>y[1]-x[1])[0];
-        return {key:g.key,dk:g.dk,uk:g.uk,batch:batch?batch[0]:'',nMurid:names.length,nBaca:cnt.baca,ln:g.ln,names,kelas:g.kelas,lokasi:g.lokasi,jam:g.jam,dateLong:longDate(g.date),dshort:this.fd(g.date),sub:longDate(g.date)+(g.jam?' \u00b7 Jam '+g.jam:'')+(g.lokasi?' \u00b7 Lokasi: '+g.lokasi:''),upto:longDate(g.date)+(g.jam?' pukul '+g.jam:''),items,sumLine,tgtDesc,cum,showPhotos:true,photoTitle:'Foto',photos:ph};
+        return {key:g.key,dk:g.dk,uk:g.uk,batch:batch?batch[0]:'',nMurid:names.length,nBaca:cnt.baca,cnt,ln:g.ln,names,kelas:g.kelas,lokasi:g.lokasi,jam:g.jam,dateLong:longDate(g.date),dshort:this.fd(g.date),sub:longDate(g.date)+(g.jam?' \u00b7 Jam '+g.jam:'')+(g.lokasi?' \u00b7 Lokasi: '+g.lokasi:''),upto:longDate(g.date)+(g.jam?' pukul '+g.jam:''),items,sumLine,tgtDesc,cum,showPhotos:true,photoTitle:'Foto',photos:ph};
       });
     }},
     settingsIdx(){
@@ -803,13 +907,10 @@ Vue.createApp({
       return [...m.values()];
     },
     studentIdx(){const m=new Map();this.eStudents.forEach(x=>m.set(normKelas(x.name),x));return m},
-    fU(){return this.sesiMode?this.sU:this.ustadzPick},
-    fB(){return this.sesiMode?this.sB:this.batchPick},
-    fD(){return this.sesiMode?this.sD:this.pick},
-    vStudents(){return this.eStudents.filter(x=>x.ms.some(m=>(!this.fB.length||this.fB.includes(m.batch||''))&&(!this.fU.length||this.fU.includes(normKelas(m.kelas)))))},
+    vStudents(){return this.eStudents.filter(x=>x.ms.some(m=>(!this.batchPick.length||this.batchPick.includes(m.batch||''))&&(!this.ustadzPick.length||this.ustadzPick.includes(normKelas(m.kelas)))))},
     bRows(){
-      if(!this.fB.length&&!this.fU.length)return this.eRows;
-      return this.eRows.filter(r=>(!this.fB.length||this.fB.includes(r.batch||''))&&(!this.fU.length||this.fU.includes(normKelas(r.ustadz))));
+      if(!this.batchPick.length&&!this.ustadzPick.length)return this.eRows;
+      return this.eRows.filter(r=>(!this.batchPick.length||this.batchPick.includes(r.batch||''))&&(!this.ustadzPick.length||this.ustadzPick.includes(normKelas(r.ustadz))));
     },
     batchOpts(){
       const m=new Map();
@@ -836,7 +937,7 @@ Vue.createApp({
     dateShown(){const q=this.dateQ.trim().toLowerCase();return q?this.dateOpts.filter(o=>o.label.toLowerCase().includes(q)||o.key.includes(q)):this.dateOpts},
     dateBtnLabel(){const n=this.pick.length;return n?(n===1?this.filterLabel:n+' tanggal dipilih'):'Semua tanggal'},
     noDateCount(){return this.bRows.filter(r=>!dkey(r.tgl)).length},
-    shownRows(){return this.fD.length?this.bRows.filter(r=>this.fD.includes(dkey(r.tgl))):this.bRows},
+    shownRows(){return this.pick.length?this.bRows.filter(r=>this.pick.includes(dkey(r.tgl))):this.bRows},
     hadirCount(){return this.res.list.filter(x=>x.hadir).length},
     activeCount(){return this.res.list.filter(x=>x.log.length).length},
     tgt(){return buildTarget(this.targetMode==='all'?'all':this.juzSel)},
@@ -856,6 +957,39 @@ Vue.createApp({
       const manual=this.tgt;
       if(this.targetMode!=='settings'||this.settings.state!=='ok')return ()=>manual;
       return name=>{const m=this.memStu(name);return m?this.tgtFromMem(m,manual):manual};
+    },
+    rekapRes(){
+      const U=this.rU,B=this.rB,ok=(b,k)=>(!B.length||B.includes(b||''))&&(!U.length||U.includes(normKelas(k)));
+      const rows=this.eRows.filter(r=>ok(r.batch,r.ustadz));
+      const names=this.eStudents.filter(x=>x.ms.some(m=>ok(m.batch,m.kelas))).map(x=>x.name);
+      return analyze(rows,names,this.tgtOf);
+    },
+    rekapGroups(){
+      const g=new Map();
+      this.rekapRes.list.forEach(x=>{
+        const st=this.memLap(x.name)||{},b=st.batch||'',k=st.kelas||'',key=b+'|'+normKelas(k);
+        if(!g.has(key))g.set(key,{key,batch:b,kelas:k,list:[]});
+        g.get(key).list.push(x);
+      });
+      const pc=(n,t)=>t?Math.round(n/t*1000)/10:0;
+      const sess=this.sesiAll;
+      return [...g.values()].sort((a,b)=>a.batch.localeCompare(b.batch,undefined,{numeric:true})||a.kelas.localeCompare(b.kelas)).map(o=>{
+        const L=o.list,n=L.length;
+        const bk=[['< 25%',0,25,'#e26ab6'],['25-49%',25,50,'#ffb02e'],['50-74%',50,75,'#53bdeb'],['75-99%',75,100,'#06cf9c'],['Tuntas',100,1e9,'#00a884']].map(([label,lo,hi,color])=>{
+          const c=L.filter(x=>x.pct>=lo&&x.pct<hi).length;return {label,n:c,pct:pc(c,n),color}});
+        const stu=[...L].sort((a,b)=>b.pct-a.pct||a.name.localeCompare(b.name)).map(x=>({name:x.name,pct:x.pct}));
+        const ayat=L.reduce((a,x)=>a+x.total,0),tgtTotal=L.reduce((a,x)=>a+x.tgt.total,0);
+        const ss=sess.filter(p=>p.uk===normKelas(o.kelas)&&(p.batch||'')===o.batch);
+        const t={baca:0,hadir:0,sakit:0,kabar:0,kosong:0};
+        ss.forEach(p=>Object.keys(t).forEach(k=>{t[k]+=p.cnt[k]}));
+        const slots=Object.values(t).reduce((a,b)=>a+b,0);
+        const th={hadir:t.baca+t.hadir,sakit:t.sakit,kabar:t.kabar,kosong:t.kosong};
+        const att=[['Hadir','hadir','#00a884'],['Sakit','sakit','#ffb02e'],['Tanpa kabar','kabar','#e26ab6'],['Tanpa data','kosong','#c5ccd0']].map(([label,k,color])=>({label,n:th[k],pct:pc(th[k],slots),color}));
+        return {key:o.key,batch:o.batch,kelas:o.kelas,label:[o.batch?'Batch '+o.batch:'',o.kelas].filter(Boolean).join(' - ')||'Tanpa batch/kelas',
+          n,stu,avg:n?Math.round(L.reduce((a,x)=>a+x.pct,0)/n*10)/10:0,tuntas:L.filter(x=>x.pct>=100).length,bk,ayat,tgtTotal,
+          nSesi:ss.length,slots,att,sessions:ss.map(p=>({p,tgl:p.dshort,jam:p.jam||'-',lokasi:p.lokasi||'-',n:p.nMurid,hadir:p.cnt.baca+p.cnt.hadir,sakit:p.cnt.sakit,kabar:p.cnt.kabar,kosong:p.cnt.kosong})),hadirPct:pc(t.baca+t.hadir,slots),avgHadir:ss.length?Math.round((t.baca+t.hadir)/ss.length*10)/10:0,
+          tgtName:[...new Set(L.map(x=>x.tgt.name))].join('; ')};
+      });
     },
     sesiAll(){
       const l=this.dailyBuilder(this.eRows,this.eRows,true);
@@ -968,6 +1102,7 @@ Vue.createApp({
     }
   },
   watch:{
+    booting(v){if(!v)this.$nextTick(()=>this.observeSesi())},
     sesiKey(){this.sesiLimit=20;this.$nextTick(()=>this.observeSesi())},
     sesiFiltered(){this.$nextTick(()=>this.observeSesi())}
   },
@@ -997,6 +1132,10 @@ Vue.createApp({
     openCombo(){if(!this.comboOpen){this.comboOpen=true;this.comboQ='';this.comboHi=Math.max(0,this.stuRes.list.findIndex(x=>this.cur&&x.name===this.cur.name))}},
     toggleCombo(){if(this.comboOpen)this.closeCombo();else{this.$refs.cin.focus();this.openCombo()}},
     closeCombo(){this.comboOpen=false;this.comboQ=''},
+    svgAvg(g){return rkAvgSvg(g)},
+    svgAtt(g){return rkAttSvg(g)},
+    svgCombo(g){return rkComboSvg(g).svg},
+    statOf(key){return this.rekapGroups.find(x=>x.key===key)},
     toggleS(arr,k){const a=this[arr];this[arr]=a.includes(k)?a.filter(x=>x!==k):[...a,k]},
     openSesiPage(p){
       this.sess=this.dailyBuilder(this.eRows,this.eRows,false,p.key)[0]||null;
@@ -1122,11 +1261,23 @@ Vue.createApp({
         gr.list.forEach(x=>rows.push([x.name,x.total+' / '+x.tgt.total,x.pct+'%',x.tuntas+' / '+x.tgt.nSeg,x.parsial,x.log.length,x.hadir,this.lastText(x)]));
         rows.push([]);
         rows.push([gr.list.length+' murid, rata-rata progress '+gr.avg+'%.'+(this.pick.length?' '+gr.hadir+' murid hadir, '+gr.active+' di antaranya setor bacaan pada tanggal terpilih.':'')]);
+        const st=this.withStats?this.statOf(gr.key):null;
+        if(st&&st.sessions.length){
+          rows.push([],['Daftar Sesi Kelas'],['Tanggal','Jam','Lokasi','Murid','Hadir','Sakit','Tanpa Kabar','Tanpa Data']);
+          st.sessions.forEach(x=>rows.push([x.tgl,x.jam,x.lokasi,x.n,x.hadir,x.sakit,x.kabar,x.kosong]));
+        }
         let nm=(G.length>1||gr.label?gr.label:'Ringkasan').replace(/[\\\/?*\[\]:]/g,'').slice(0,31)||'Ringkasan';
         let k=nm,n=2;while(used.has(k.toLowerCase())){k=nm.slice(0,28)+' '+n++}
         used.add(k.toLowerCase());
         XLSX.utils.book_append_sheet(wb,sheet(rows,[30,16,12,14,15,10,8,20]),k);
       });
+      if(this.withStats){
+        const R=[['Statistik per Batch-Kelas'],[],['Batch-Kelas','Murid','Rata-rata progress (%)','Murid tuntas','Ayat terbaca','Ayat target','Sesi','Hadir (%)','Sakit (%)','Tanpa kabar (%)','Tanpa data (%)','Rata-rata murid hadir per sesi']];
+        this.rekapGroups.forEach(g=>{const a=k=>(g.att.find(x=>x.label===k)||{pct:0}).pct;
+          R.push([g.label,g.n,g.avg,g.tuntas,g.ayat,g.tgtTotal,g.nSesi,g.nSesi?a('Hadir'):'-',g.nSesi?a('Sakit'):'-',g.nSesi?a('Tanpa kabar'):'-',g.nSesi?a('Tanpa data'):'-',g.nSesi?g.avgHadir:'-'])});
+        let k='Statistik';while(used.has(k.toLowerCase()))k+='_';
+        XLSX.utils.book_append_sheet(wb,sheet(R,[28,8,20,13,13,12,8,11,11,15,14,26]),k);
+      }
       return wb;
     },
     wbStudent(){
@@ -1182,15 +1333,39 @@ Vue.createApp({
       return c;
     },
     lastText(x){return x.log.length?this.fd(x.last):this.noLogText(x)},
-    docSummary(){
+    async rkWordStats(g){
+      const d=docx,ch=[];
+      const png=async(svg,w,h)=>new d.ImageRun({type:'png',data:await svgToPng(svg,w,h),transformation:{width:w,height:h}});
+      const none={style:d.BorderStyle.NONE,size:0,color:'FFFFFF'},nb={top:none,bottom:none,left:none,right:none};
+      const cell=(w,kids)=>new d.TableCell({width:{size:w,type:d.WidthType.DXA},borders:nb,margins:{top:40,bottom:40,left:60,right:120},children:kids});
+      const row=async(svg,sz,head,lines)=>[wP(head,{bold:true,after:40,keepNext:true}),new d.Paragraph({spacing:{after:40},children:[await png(svg,sz,sz)]}),...lines.map(t=>wP(t,{after:20}))];
+      const left=await row(rkAvgSvg(g,110),110,'Progress capaian',['Rata-rata progress '+g.avg+'%','Murid tuntas: '+g.tuntas+' dari '+g.n,'Ayat terbaca: '+g.ayat.toLocaleString('id-ID')+' dari '+g.tgtTotal.toLocaleString('id-ID')+' (tanpa hitung ganda)']);
+      const right=g.nSesi?await row(rkAttSvg(g,110),110,'Kehadiran',[...g.att.filter(x=>x.n).map(x=>x.label+' '+x.pct+'%'),g.nSesi+' sesi, rata-rata '+g.avgHadir+' murid hadir per sesi']):[wP('Kehadiran',{bold:true,after:40}),wP('Belum ada sesi tercatat.')];
+      ch.push(new d.Table({width:{size:10206,type:d.WidthType.DXA},columnWidths:[4900,5306],borders:{top:none,bottom:none,left:none,right:none,insideHorizontal:none,insideVertical:none},rows:[new d.TableRow({cantSplit:true,children:[cell(4900,left),cell(5306,right)]})]}));
+      if(g.stu.length){
+        const c=rkComboSvg(g),sc=Math.min(1,660/c.w),w=Math.round(c.w*sc),h=Math.round(c.h*sc);
+        ch.push(wP('Sebaran progress per murid',{bold:true,before:120,after:40,keepNext:true}));
+        ch.push(new d.Paragraph({spacing:{after:40},keepNext:true,children:[await png(c.svg,w,h)]}));
+        ch.push(wP('Batang: progress tiap murid. Garis: sebaran. Garis putus-putus: rata-rata kelas '+g.avg+'%.',{after:120,color:WMUTE,size:18}));
+      }
+      return ch;
+    },
+    async docSummary(){
       const ch=[];
-      this.summaryGroups.forEach((gr,i)=>{
+      for(const [i,gr] of this.summaryGroups.entries()){
         this.wMeta(gr.title,gr.tgtDesc,{pageBreak:i>0,noScope:true}).forEach(x=>ch.push(x));
-        ch.push(wTable([3300,2000,1700,1700,1700,1100,1000,2638],['Murid','Ayat terbaca','Progress','Surat tuntas','Surat sebagian','Setoran','Hadir','Setoran terakhir'],
+        const st=this.withStats?this.statOf(gr.key):null;
+        if(st)(await this.rkWordStats(st)).forEach(x=>ch.push(x));
+        ch.push(wTable((this.withStats?[2300,1300,1000,1100,1100,800,700,1906]:[3300,2000,1700,1700,1700,1100,1000,2638]),['Murid','Ayat terbaca','Progress','Surat tuntas','Surat sebagian','Setoran','Hadir','Setoran terakhir'],
           gr.list.map(x=>[x.name,x.total+' / '+x.tgt.total,x.pct+'%',x.tuntas+' / '+x.tgt.nSeg,x.parsial,x.log.length,x.hadir,this.lastText(x)]),{right:[1,2,3,4,5,6],bold:[0]}));
         ch.push(wP(gr.list.length+' murid, rata-rata progress '+gr.avg+'%.'+(this.pick.length?' '+gr.hadir+' murid hadir, '+gr.active+' di antaranya setor bacaan pada tanggal terpilih.':''),{before:160}));
-      });
-      return wDoc(ch,true);
+        if(st&&st.sessions.length){
+          ch.push(wP('Daftar Sesi Kelas',{bold:true,before:200,after:60,keepNext:true}));
+          ch.push(wTable([1800,800,1600,800,800,800,1800,1806],['Tanggal','Jam','Lokasi','Murid','Hadir','Sakit','Tanpa kabar','Tanpa data'],
+            st.sessions.map(x=>[x.tgl,x.jam,x.lokasi,x.n,x.hadir,x.sakit,x.kabar,x.kosong]),{right:[3,4,5,6,7],bold:[0]}));
+        }
+      }
+      return wDoc(ch,!this.withStats);
     },
     docStudent(){
       const c=this.cur,t=c.tgt;
@@ -1248,7 +1423,7 @@ Vue.createApp({
       this.busy=true;
       try{
         const k=this.fkOver||this.fileKey();let doc,name,ph=null;
-        if(kind==='summary'){doc=this.docSummary();name='ringkasan-progress-'+k+'.docx'}
+        if(kind==='summary'){doc=await this.docSummary();name='ringkasan-progress-'+k+'.docx'}
         else if(kind==='detail'){doc=this.docStudent();name='progress-'+slug(this.cur.name)+'-'+slug(this.tgtKey)+(this.stuBatchPick.length?'-batch-'+slug(this.stuBatchPick.join('-')):'')+'.docx'}
         else{const r=await this.docDaily();doc=r.doc;name='laporan-harian-'+k+'.docx';ph=r}
         const blob=await docx.Packer.toBlob(doc);
@@ -1298,17 +1473,28 @@ Vue.createApp({
         else await this.exportXlsx('daily');
       }finally{this.onlyPages=null;this.fkOver=''}
     },
+    async withTabFilters(u,b,d,fk,fn){
+      const sv=[this.ustadzPick,this.batchPick,this.pick];
+      this.err='';this.note='';
+      this.ustadzPick=u;this.batchPick=b;this.pick=d;this.fkOver=fk;
+      try{await this.$nextTick();await fn()}
+      finally{[this.ustadzPick,this.batchPick,this.pick]=sv;this.fkOver=''}
+    },
+    async doExport(kind,fmt){
+      if(fmt==='pdf')await this.doPrint(kind);
+      else if(fmt==='docx')await this.exportDocx(kind);
+      else await this.exportXlsx(kind);
+    },
     async sesiExport(fmt){
       const kind=this.sKind;if(!kind||!this.sesiFiltered.length)return;
-      this.err='';this.note='';
-      this.sesiMode=true;
-      this.fkOver='sesi-kelas'+(this.sB.length?'-batch-'+slug(this.sB.join('-')):'')+(this.sU.length?'-kelas-'+slug(this.sU.join('-')):'')+(this.sD.length?'-filter-tanggal':'');
-      try{
-        await this.$nextTick();
-        if(fmt==='pdf')await this.doPrint(kind);
-        else if(fmt==='docx')await this.exportDocx(kind);
-        else await this.exportXlsx(kind);
-      }finally{this.sesiMode=false;this.fkOver=''}
+      const fk='sesi-kelas'+(this.sB.length?'-batch-'+slug(this.sB.join('-')):'')+(this.sU.length?'-kelas-'+slug(this.sU.join('-')):'')+(this.sD.length?'-filter-tanggal':'');
+      await this.withTabFilters(this.sU,this.sB,this.sD,fk,()=>this.doExport(kind,fmt));
+    },
+    async rekapExport(fmt){
+      if(!this.rekapGroups.length)return;
+      const fk='rekap-batch-kelas'+(this.rB.length?'-batch-'+slug(this.rB.join('-')):'')+(this.rU.length?'-kelas-'+slug(this.rU.join('-')):'');
+      this.withStats=true;
+      try{await this.withTabFilters(this.rU,this.rB,[],fk,()=>this.doExport('summary',fmt))}finally{this.withStats=false}
     },
     closeSession(){this.sessOpen=false;this.sessMenu=false;document.body.classList.remove('sheetopen')},
     ini(n){const p=String(n||'').trim().split(/\s+/);return ((p[0]||'')[0]||'').toUpperCase()+((p.length>1?p[p.length-1][0]:'')||'').toUpperCase()},
@@ -1320,10 +1506,17 @@ Vue.createApp({
   template:`
 <div class="wrap" @dragover.prevent @drop.prevent="onDrop">
   <header>
-    <div class="titlebox">
-      <h1 class="noprint">Kelas Beasiswa RTIY</h1>
+    <div class="titlebox hbrand">
+      <button type="button" class="hbtn noprint" v-if="tab==='laporan'&&!booting" aria-label="Kembali" @click="setTab('sesi')"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M20 11H7.8l5.6-5.6L12 4l-8 8 8 8 1.4-1.4L7.8 13H20v-2z"/></svg></button>
+      <h1 class="noprint">{{tab==='laporan'&&!booting?'Laporan':'Kelas Beasiswa RTIY'}}</h1>
+    </div>
+    <div class="hmenubtn noprint" v-if="!booting">
+      <button type="button" class="hbtn" aria-label="Menu" aria-haspopup="menu" :aria-expanded="hmenu" @click.stop="hmenu=!hmenu"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm0 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg></button>
     </div>
   </header>
+  <div class="hmenuwrap hmenu noprint" role="menu" v-if="hmenu&&!booting">
+    <button type="button" role="menuitem" :class="{on:tab==='laporan'}" @click="hmenu=false;setTab('laporan')">Laporan</button>
+  </div>
   <div class="splash noprint" v-if="loadingAny&&booting" role="progressbar" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="loadPct" aria-live="polite">
     <div class="splogo"><svg viewBox="0 0 24 24" width="44" height="44" aria-hidden="true"><path fill="#fff" d="M12 6c-1.7-1-3.8-1.4-6-1.4v12c2.2 0 4.3.4 6 1.4 1.7-1 3.8-1.4 6-1.4v-12c-2.2 0-4.3.4-6 1.4z"/></svg></div>
     <div class="sptitle">Kelas Beasiswa RTIY</div>
@@ -1462,8 +1655,8 @@ Vue.createApp({
 
   </template>
   <template v-if="tab==='sesi'">
-  <details class="dbox" open>
-    <summary>Filter Sesi Kelas<span class="fbadge" v-if="sesiActive">{{sesiActive}} filter aktif</span></summary>
+  <details class="dbox">
+    <summary><svg class="sic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M4.25 5.61C6.27 8.2 10 13 10 13v6c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-6s3.72-4.8 5.74-7.39A.998.998 0 0 0 18.95 4H5.04c-.83 0-1.3.95-.79 1.61z"/></svg>Filter Sesi Kelas<span class="fbadge" v-if="sesiActive">{{sesiActive}} filter aktif</span></summary>
     <div class="dbody">
       <div class="filterbar" v-if="sesiUOpts.length">
         <div class="fhead"><b>Filter Kelas (Ustadz)</b><button class="btn small" v-if="sU.length" @click="sU=[]">Hapus filter</button></div>
@@ -1493,7 +1686,7 @@ Vue.createApp({
     </div>
   </details>
   <details class="dbox printbox" open>
-    <summary>Cetak &amp; Unduh<span class="fbadge" v-if="sesiActive">{{sesiActive}} filter aktif</span></summary>
+    <summary><svg class="sic" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M19 8H5a3 3 0 0 0-3 3v6h4v4h12v-4h4v-6a3 3 0 0 0-3-3zm-3 11H8v-5h8v5zm3-7a1 1 0 1 1 0-2 1 1 0 0 1 0 2zM18 3H6v4h12V3z"/></svg>Cetak &amp; Unduh<span class="fbadge" v-if="sesiActive">{{sesiActive}} filter aktif</span></summary>
     <div class="dbody">
       <p class="mute">Laporan mengikuti filter di tab Sesi Kelas ini ({{sesiFiltered.length}} sesi).</p>
       <div class="subhead">Laporan</div>
@@ -1529,6 +1722,78 @@ Vue.createApp({
     <p class="mute sesimore" v-if="sesiLimit<sesiFiltered.length">Memuat sesi lainnya...</p>
     <p class="mute sesimore" v-else-if="sesiFiltered.length">Semua sesi sudah ditampilkan.</p>
     <p class="msg empty" v-if="!sesiFiltered.length">Tidak ada sesi yang cocok dengan filter.</p>
+  </div>
+  </template>
+  <template v-if="tab==='rekap'">
+  <h2 class="pagetitle">Rekap Kelas</h2>
+  <details class="dbox" open>
+    <summary>Filter Rekap<span class="fbadge" v-if="rU.length+rB.length">{{rU.length+rB.length}} filter aktif</span></summary>
+    <div class="dbody">
+      <div class="filterbar" v-if="ustadzOpts.length">
+        <div class="fhead"><b>Filter Ustadz</b><button class="btn small" v-if="rU.length" @click="rU=[]">Hapus filter</button></div>
+        <div class="chips"><button v-for="o in ustadzOpts" :key="o.key" class="chip" :class="{on:rU.includes(o.key)}" :aria-pressed="rU.includes(o.key)" @click="toggleS('rU',o.key)">{{o.label}} <small>({{o.n}} murid)</small></button></div>
+        <p class="mute" v-if="!rU.length">Semua Ustadz ditampilkan. Pilih satu atau beberapa Ustadz untuk menyaring rekap.</p>
+      </div>
+      <div class="filterbar" v-if="batchOpts.length">
+        <div class="fhead"><b>Filter batch</b><button class="btn small" v-if="rB.length" @click="rB=[]">Hapus filter</button></div>
+        <div class="chips"><button v-for="o in batchOpts" :key="o.key" class="chip" :class="{on:rB.includes(o.key)}" :aria-pressed="rB.includes(o.key)" @click="toggleS('rB',o.key)">{{o.label}} <small>({{o.n}} murid)</small></button></div>
+        <p class="mute" v-if="!rB.length">Semua batch ditampilkan. Pilih satu atau beberapa batch untuk menyaring rekap.</p>
+      </div>
+      <p class="mute" v-if="!ustadzOpts.length&&!batchOpts.length">Tidak ada pilihan filter (hanya satu kelas).</p>
+    </div>
+  </details>
+  <details class="dbox printbox" open>
+    <summary>Cetak &amp; Unduh</summary>
+    <div class="dbody">
+      <p class="mute">Rekap per Batch-Kelas ({{rekapGroups.length}} kelas) mengikuti filter di tab ini.</p>
+      <div class="fmtrow">
+        <span class="alabel">Pilih format:</span>
+        <button class="btn" :disabled="!rekapGroups.length" @click="rekapExport('pdf')" title="Buka dialog cetak; simpan sebagai PDF">PDF (Cetak)</button>
+        <button class="btn" :disabled="busy||!rekapGroups.length" @click="rekapExport('docx')">Word (.docx)</button>
+        <button class="btn" :disabled="!rekapGroups.length" @click="rekapExport('xlsx')">Excel (.xlsx)</button>
+      </div>
+      <p class="mute" v-if="err||note" :style="err?'color:#c0392b':''">{{err||note}}</p>
+    </div>
+  </details>
+  <div v-if="!rekapGroups.length" class="msg empty">Belum ada data kelas.</div>
+  <div class="rkgrid" v-else>
+    <article class="rkcard" v-for="g in rekapGroups" :key="g.key">
+      <div class="rkhead">
+        <i class="av" :style="{background:avColor(g.label)}">{{ini(g.kelas||g.label)}}</i>
+        <div><b>{{g.label}}</b><small class="mute">{{g.n}} murid &middot; Target {{g.tgtName}}</small></div>
+      </div>
+      <h3 class="rkh">Progress capaian</h3>
+      <div class="rkrow">
+        <div class="rkpie" v-html="svgAvg(g)"></div>
+        <div class="rktxt">
+          <b>Rata-rata progress</b>
+          <span>{{g.tuntas}} dari {{g.n}} murid tuntas</span>
+          <span class="mute">{{g.ayat.toLocaleString('id-ID')}} dari {{g.tgtTotal.toLocaleString('id-ID')}} ayat target terbaca (tanpa hitung ganda)</span>
+        </div>
+      </div>
+      <h3 class="rkh">Sebaran progress per murid</h3>
+      <div class="rkscroll" v-if="g.stu.length" v-html="svgCombo(g)"></div>
+      <ul class="leg"><li><i style="background:#00a884"></i>Progress murid (batang)</li><li><i style="background:#128c7e"></i>Garis sebaran</li><li><i style="background:#e26ab6"></i>Rata-rata {{g.avg}}%</li></ul>
+      <h3 class="rkh">Kehadiran</h3>
+      <template v-if="g.nSesi">
+        <div class="rkrow">
+          <div class="rkpie" v-html="svgAtt(g)"></div>
+          <ul class="leg col"><li v-for="x in g.att" :key="x.label" v-show="x.n"><i :style="{background:x.color}"></i>{{x.label}} <b>{{x.pct}}%</b></li></ul>
+        </div>
+        <p class="mute rkline">{{g.nSesi}} sesi &middot; rata-rata {{g.avgHadir}} murid hadir per sesi.</p>
+      </template>
+      <p class="mute" v-else>Belum ada sesi tercatat.</p>
+      <details class="rkdet" v-if="g.sessions.length">
+        <summary>Sesi Kelas <span class="mute">({{g.sessions.length}})</span></summary>
+        <div class="tablewrap"><table class="rksess">
+          <thead><tr><th>Tanggal</th><th>Jam</th><th>Lokasi</th><th class="num">Murid</th><th class="num">Hadir</th><th class="num">Sakit</th><th class="num">Tanpa kabar</th><th class="num">Tanpa data</th></tr></thead>
+          <tbody><tr v-for="x in g.sessions" :key="x.p.key" class="rkclick" tabindex="0" role="button" :aria-label="'Buka sesi '+x.tgl+' '+x.jam" @click="openSesiPage(x.p)" @keydown.enter.prevent="openSesiPage(x.p)" @keydown.space.prevent="openSesiPage(x.p)">
+            <td><b>{{x.tgl}}</b></td><td>{{x.jam}}</td><td>{{x.lokasi}}</td><td class="num">{{x.n}}</td><td class="num">{{x.hadir}}</td><td class="num">{{x.sakit}}</td><td class="num">{{x.kabar}}</td><td class="num">{{x.kosong}}</td>
+          </tr></tbody>
+        </table></div>
+        <p class="mute rkline">Klik baris untuk melihat detail sesi.</p>
+      </details>
+    </article>
   </div>
   </template>
   <template v-if="tab==='murid'">
@@ -1666,11 +1931,22 @@ Vue.createApp({
   </section>
 
   </template>
-  <section class="summary-print" v-if="res.list.length">
+  <section class="summary-print" :class="{rekap:withStats}" v-if="res.list.length">
     <article class="sumgroup" v-for="gr in summaryGroups" :key="gr.key">
     <h1>{{gr.title}}</h1>
     <p class="mute">Sumber: {{src}}. Dicetak {{printDate}}. Target {{gr.tgtDesc}}.</p>
     <p class="mute" v-if="pick.length"><b>Tanggal: {{filterLabel}}.</b> Angka dihitung hanya dari bacaan pada tanggal tersebut.</p>
+    <div class="rkprint" v-if="withStats&&statOf(gr.key)">
+      <div class="rkp2">
+        <div><h3>Progress capaian</h3><div class="rkrow"><div class="rkpie" v-html="svgAvg(statOf(gr.key))"></div>
+          <div class="rktxt"><b>Rata-rata progress {{statOf(gr.key).avg}}%</b><span>Murid tuntas: {{statOf(gr.key).tuntas}} dari {{statOf(gr.key).n}}</span><span>Ayat terbaca: {{statOf(gr.key).ayat.toLocaleString('id-ID')}} dari {{statOf(gr.key).tgtTotal.toLocaleString('id-ID')}} (tanpa hitung ganda)</span></div></div></div>
+        <div><h3>Kehadiran</h3><div class="rkrow" v-if="statOf(gr.key).nSesi"><div class="rkpie" v-html="svgAtt(statOf(gr.key))"></div>
+          <div class="rktxt"><span v-for="x in statOf(gr.key).att" :key="x.label" v-show="x.n">{{x.label}} <b>{{x.pct}}%</b></span><span>{{statOf(gr.key).nSesi}} sesi, rata-rata {{statOf(gr.key).avgHadir}} murid hadir per sesi</span></div></div><p v-else>Belum ada sesi tercatat.</p></div>
+      </div>
+      <h3>Sebaran progress per murid</h3>
+      <div class="rkscroll" v-if="statOf(gr.key).stu.length" v-html="svgCombo(statOf(gr.key))"></div>
+      <p class="mute">Batang: progress tiap murid. Garis: sebaran. Garis putus-putus: rata-rata kelas {{statOf(gr.key).avg}}%.</p>
+    </div>
     <div class="tablewrap" style="margin-top:12px"><table class="sumtable">
       <colgroup><col style="width:21%"><col style="width:12%"><col style="width:18%"><col style="width:9%"><col style="width:9%"><col style="width:8%"><col style="width:7%"><col style="width:16%"></colgroup>
       <thead><tr><th>Murid</th><th class="num">Ayat terbaca</th><th>Progress</th><th class="num">Surat tuntas</th><th class="num">Surat sebagian</th><th class="num">Setoran</th><th class="num">Hadir</th><th>Setoran terakhir</th></tr></thead>
@@ -1685,6 +1961,13 @@ Vue.createApp({
         <td>{{s.log.length?fd(s.last):noLogText(s)}}</td>
       </tr></tbody>
     </table></div>
+    <div class="rkprint" v-if="withStats&&statOf(gr.key)&&statOf(gr.key).sessions.length">
+      <h3>Daftar Sesi Kelas</h3>
+      <div class="tablewrap"><table class="sumtable">
+        <thead><tr><th>Tanggal</th><th>Jam</th><th>Lokasi</th><th class="num">Murid</th><th class="num">Hadir</th><th class="num">Sakit</th><th class="num">Tanpa kabar</th><th class="num">Tanpa data</th></tr></thead>
+        <tbody><tr v-for="x in statOf(gr.key).sessions" :key="x.p.key"><td><b>{{x.tgl}}</b></td><td>{{x.jam}}</td><td>{{x.lokasi}}</td><td class="num">{{x.n}}</td><td class="num">{{x.hadir}}</td><td class="num">{{x.sakit}}</td><td class="num">{{x.kabar}}</td><td class="num">{{x.kosong}}</td></tr></tbody>
+      </table></div>
+    </div>
     <p class="sumfoot">{{gr.list.length}} murid, rata-rata progress {{gr.avg}}%.<span v-if="pick.length" style="margin-left:.35em">{{gr.hadir}} murid hadir, {{gr.active}} di antaranya setor bacaan pada tanggal terpilih.</span></p>
     </article>
   </section>
@@ -1786,11 +2069,11 @@ Vue.createApp({
   </div>
   </template>
   <nav class="tabbar noprint" v-if="!booting" aria-label="Navigasi">
-    <button type="button" class="tab" :class="{on:tab==='laporan'}" :aria-current="tab==='laporan'?'page':null" @click="setTab('laporan')">
-      <span class="tic"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm1 11v4h2v-4H6zm4-5v9h2V9h-2zm4 3v6h2v-6h-2z"/></svg></span><span class="tl">Laporan</span>
-    </button>
     <button type="button" class="tab" :class="{on:tab==='sesi'}" :aria-current="tab==='sesi'?'page':null" @click="setTab('sesi')">
       <span class="tic"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M7 2v2H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7zm-2 8h14v9H5v-9zm2 2v2h2v-2H7zm4 0v2h2v-2h-2z"/></svg></span><span class="tl">Sesi Kelas</span>
+    </button>
+    <button type="button" class="tab" :class="{on:tab==='rekap'}" :aria-current="tab==='rekap'?'page':null" aria-label="Rekap Kelas" @click="setTab('rekap')">
+      <span class="tic"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M5 9h3v10H5V9zm5.5-5h3v15h-3V4zM16 13h3v6h-3v-6z"/></svg></span><span class="tl">Rekap Kelas</span>
     </button>
     <button type="button" class="tab" :class="{on:tab==='murid'}" :aria-current="tab==='murid'?'page':null" @click="setTab('murid')">
       <span class="tic"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-3.3 0-8 1.7-8 5v1h16v-1c0-3.3-4.7-5-8-5z"/></svg></span><span class="tl">Murid</span>
