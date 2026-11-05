@@ -136,6 +136,13 @@ td.link:focus-visible{outline:2px solid var(--ok);outline-offset:-2px}
 .sheetwrap{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center;animation:fadein .15s ease-out}
 .sheet{background:var(--bg);color:var(--ink);width:100%;max-width:900px;max-height:88vh;overflow:auto;border-radius:14px 14px 0 0;padding:10px 18px 24px;box-shadow:0 -8px 30px rgba(0,0,0,.25);animation:slideup .22s ease-out;position:relative}
 .sheethead{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:12px;background:var(--bar);color:#fff;margin:-10px -18px 12px;padding:12px 16px}
+.sessfmt{display:flex;justify-content:flex-end;margin:0 0 8px}
+.printmenu{position:relative}
+.printbtn{display:inline-flex;align-items:center;gap:6px}
+.pmenu{position:absolute;right:0;top:calc(100% + 6px);z-index:5;min-width:180px;background:#fff;border-radius:12px;box-shadow:0 4px 18px rgba(11,20,26,.25);padding:6px;display:flex;flex-direction:column}
+.pmenu button{font:inherit;text-align:left;background:none;border:0;border-radius:8px;padding:10px 12px;cursor:pointer;color:var(--ink)}
+.pmenu button:hover:not(:disabled),.pmenu button:focus-visible{background:#f0f2f5}
+.pmenu button:disabled{opacity:.5}
 .sheethead b{font-size:17px;font-weight:600}
 .sheethead small{margin-left:auto;color:rgba(255,255,255,.85);font-size:12.5px;text-align:right}
 .sheet .sclose{border:0;background:transparent;color:#fff;font-size:18px;line-height:1;cursor:pointer;padding:4px 6px;border-radius:50%}
@@ -179,10 +186,12 @@ body.sheetopen{overflow:hidden}
 .pie-fg{stroke:#00a884;transition:stroke-dasharray .4s ease}
 .pie text.pie-pct{font-size:20px;font-weight:700;fill:#111b21;dominant-baseline:auto}
 .pie text.pie-sub{font-size:8px;fill:#667781}
-.pielegend{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;flex:0 1 320px;min-width:220px}
-.pielegend li{display:flex;align-items:center;gap:8px;font-size:14px}
-.pielegend li span{flex:1}
-.pielegend li.tot{border-top:1px solid var(--line);padding-top:8px;color:var(--mute)}
+.pielegend{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:auto auto auto;column-gap:10px;row-gap:9px;align-items:center;flex:0 0 auto}
+.pielegend li{display:contents}
+.pielegend li>span{font-size:14px}
+.pielegend li b{font-size:14px;text-align:right;margin-left:6px}
+.pielegend li.tot>span{grid-column:1/3;color:var(--mute);font-size:13px}
+.pielegend li.tot>b{color:var(--mute);font-weight:600}
 .pielegend .dot{width:12px;height:12px;border-radius:50%;background:#e9edef;flex:none;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .pielegend .dot.on{background:#00a884}
 .pielegend .dot.sq{border-radius:3px}
@@ -253,6 +262,18 @@ td.link{color:#008069;font-weight:500}
 .studenthead h1{color:#111b21}
 }
 @media screen{
+.sesicount{margin:8px 2px}
+.sesilist{display:flex;flex-direction:column;gap:6px}
+.datepill{align-self:center;background:#fff;color:#54656f;font-size:12.5px;padding:5px 12px;border-radius:8px;box-shadow:0 1px .5px rgba(11,20,26,.13);margin:12px 0 4px}
+.sesirow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;font:inherit;color:var(--ink);background:#fff;border:0;border-radius:12px;padding:10px 14px;cursor:pointer;box-shadow:0 1px .5px rgba(11,20,26,.13)}
+.sesirow:hover{background:#f7f8f8}
+.sesirow:focus-visible{outline:2px solid #00a884}
+.sesirow .sbody{flex:1;display:flex;flex-direction:column;min-width:0}
+.sesirow .sbody b{font-weight:600}
+.sesirow .sright{display:flex;flex-direction:column;align-items:flex-end;font-size:13px}
+.sesirow small{font-size:12.5px}
+.sesiend{height:1px}
+.sesimore{text-align:center;margin:10px 0}
 .fbadge{margin-left:auto;background:var(--bub);color:#0a5c48;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:600}
 .subhead{font-size:13px;font-weight:600;color:#54656f;margin-top:4px}
 .dbox .dbody .filterbar,.dbox .dbody .targetbar{background:#f7f8f8;box-shadow:none;margin:0}
@@ -639,13 +660,14 @@ function wDoc(children,landscape,vm){
 }
 
 Vue.createApp({
-  data(){return{logoSrc:LOGO_DRIVE_ID?('https://drive.google.com/thumbnail?id='+LOGO_DRIVE_ID+'&sz=w800'):LOGO_DATA,logoData:LOGO_DATA,rows:[],src:'Memuat Google Sheet...',dataSource:'google',googleRows:[],gSheets:LOG_SHEETS.map((x,i)=>({label:'Sheet '+(i+1),state:'loading',n:0,err:''})),uploadName:'',err:'',sel:null,pick:[],printDate:'',targetMode:'settings',juzSel:[30],batchPick:[],ustadzPick:[],settings:{state:'loading',err:'',classes:[],students:[]},juzOpen:false,comboOpen:false,comboQ:'',comboHi:0,busy:false,note:'',photos:[],photoState:'loading',photoErr:'',badImg:{},booting:true,expKind:'',tab:'laporan',stuBatchPick:[],dateOpen:false,dateQ:'',sessOpen:false,sess:null,sessStudent:''}},
+  data(){return{logoSrc:LOGO_DRIVE_ID?('https://drive.google.com/thumbnail?id='+LOGO_DRIVE_ID+'&sz=w800'):LOGO_DATA,logoData:LOGO_DATA,rows:[],src:'Memuat Google Sheet...',dataSource:'google',googleRows:[],gSheets:LOG_SHEETS.map((x,i)=>({label:'Sheet '+(i+1),state:'loading',n:0,err:''})),uploadName:'',err:'',sel:null,pick:[],printDate:'',targetMode:'settings',juzSel:[30],batchPick:[],ustadzPick:[],settings:{state:'loading',err:'',classes:[],students:[]},juzOpen:false,comboOpen:false,comboQ:'',comboHi:0,busy:false,note:'',photos:[],photoState:'loading',photoErr:'',badImg:{},booting:true,expKind:'',tab:'laporan',sesiMode:false,sKind:'',sessMenu:false,onlyPages:null,fkOver:'',sU:[],sB:[],sD:[],sDateOpen:false,sDateQ:'',sesiLimit:20,stuBatchPick:[],dateOpen:false,dateQ:'',sessOpen:false,sess:null,sessStudent:''}},
   mounted(){
     this.reloadAll(true);
     document.addEventListener('keydown',e=>{if(e.key==='Escape'&&this.sessOpen)this.closeSession()});
     document.addEventListener('click',e=>{
       if(!e.target.closest('.jmulti'))this.juzOpen=false;
-      if(!e.target.closest('.dmulti'))this.dateOpen=false;
+      if(!e.target.closest('.printmenu'))this.sessMenu=false;
+      if(!e.target.closest('.dmulti')){this.dateOpen=false;this.sDateOpen=false}
       if(!e.target.closest('.combo'))this.closeCombo();
     });
   },
@@ -678,8 +700,8 @@ Vue.createApp({
       if(this.photoState==='error')return 'Foto tidak tersedia: '+this.photoErr+'.';
       return 'Tidak ada foto untuk sesi ini (tanggal, kelas, dan lokasi).';
     },
-    dailyPages(){return this.dailyBuilder(this.shownRows)},
-    dailyBuilder(){return (shown,base)=>{
+    dailyPages(){return this.onlyPages||this.dailyBuilder(this.shownRows)},
+    dailyBuilder(){return (shown,base,lite,only)=>{
       const B=base||this.bRows,VS=base?this.eStudents:this.vStudents,AN=base?this.eStudents.map(x=>x.name):this.allNames;
       const real=l=>{l=String(l==null?'':l).trim();return l&&l!=='-'?l:''};
       const mn=r=>String(r.murid||'').trim();
@@ -715,7 +737,7 @@ Vue.createApp({
       });
       const byDay=new Map();
       groups.forEach(g=>{const k=g.dk+'|'+g.uk;(byDay.get(k)||byDay.set(k,[]).get(k)).push(g)});
-      return [...groups.values()].sort((a,b)=>a.dk<b.dk?-1:a.dk>b.dk?1:(a.uk<b.uk?-1:a.uk>b.uk?1:(a.jam<b.jam?-1:a.jam>b.jam?1:(a.ln<b.ln?-1:1)))).map(g=>{
+      return [...groups.values()].sort((a,b)=>a.dk<b.dk?-1:a.dk>b.dk?1:(a.uk<b.uk?-1:a.uk>b.uk?1:(a.jam<b.jam?-1:a.jam>b.jam?1:(a.ln<b.ln?-1:1)))).filter(g=>!only||g.key===only).map(g=>{
         const kn=g.uk;
         const placed=new Set([...cntLok.keys()].map(k=>{const p=k.split('|');return p[0]+'|'+p[1]}));
         const unplaced=kn?VS.filter(x=>normKelas(x.kelas)===kn&&!placed.has(kn+'|'+x.name)).map(x=>x.name):[];
@@ -739,7 +761,7 @@ Vue.createApp({
           });
         });
         const nameSet=new Set(names);
-        const cum=analyze(B.filter(r=>{const k=dkey(r.tgl);return k&&(k<g.dk||(k===g.dk&&(r.jam||'')<=(g.jam||'')))&&nameSet.has(String(r.murid||'').trim())}),names,this.tgtOf).list;
+        const cum=lite?[]:analyze(B.filter(r=>{const k=dkey(r.tgl);return k&&(k<g.dk||(k===g.dk&&(r.jam||'')<=(g.jam||'')))&&nameSet.has(String(r.murid||'').trim())}),names,this.tgtOf).list;
         const cnt={baca:0,hadir:0,sakit:0,kabar:0,kosong:0};
         names.forEach(n=>{const rs=g.rows.filter(r=>String(r.murid).trim()===n);
           if(!rs.length){cnt.kosong++;return}
@@ -749,8 +771,9 @@ Vue.createApp({
           else cnt.kabar++;});
         const sumLine=cnt.baca===names.length?'':names.length+' murid: '+[cnt.baca&&cnt.baca+' membaca',cnt.hadir&&cnt.hadir+' hadir tanpa bacaan',cnt.sakit&&cnt.sakit+' sakit',cnt.kabar&&cnt.kabar+' tidak ada kabar',cnt.kosong&&cnt.kosong+' tanpa data'].filter(Boolean).join(', ')+'.';
         const ph=(this.photoMap[g.dk+'|'+kn]||[]).filter(p=>!p.lok||!g.ln||p.lok===g.ln).map(p=>p.id);
-        const tgtDesc=[...new Map(cum.map(c=>[c.tgt.key,c.tgt])).values()].map(t=>t.name+' ('+t.total+' ayat)').join('; ');
-        return {key:g.key,dk:g.dk,ln:g.ln,names,kelas:g.kelas,lokasi:g.lokasi,jam:g.jam,dateLong:longDate(g.date),dshort:this.fd(g.date),sub:longDate(g.date)+(g.jam?' \u00b7 Jam '+g.jam:'')+(g.lokasi?' \u00b7 Lokasi: '+g.lokasi:''),upto:longDate(g.date)+(g.jam?' pukul '+g.jam:''),items,sumLine,tgtDesc,cum,showPhotos:true,photoTitle:'Foto',photos:ph};
+        const tgtDesc=lite?'':[...new Map(cum.map(c=>[c.tgt.key,c.tgt])).values()].map(t=>t.name+' ('+t.total+' ayat)').join('; ');
+        const bc=new Map();g.rows.forEach(r=>{const b=String(r.batch==null?'':r.batch).trim();if(b)bc.set(b,(bc.get(b)||0)+1)});const batch=[...bc.entries()].sort((x,y)=>y[1]-x[1])[0];
+        return {key:g.key,dk:g.dk,uk:g.uk,batch:batch?batch[0]:'',nMurid:names.length,nBaca:cnt.baca,ln:g.ln,names,kelas:g.kelas,lokasi:g.lokasi,jam:g.jam,dateLong:longDate(g.date),dshort:this.fd(g.date),sub:longDate(g.date)+(g.jam?' \u00b7 Jam '+g.jam:'')+(g.lokasi?' \u00b7 Lokasi: '+g.lokasi:''),upto:longDate(g.date)+(g.jam?' pukul '+g.jam:''),items,sumLine,tgtDesc,cum,showPhotos:true,photoTitle:'Foto',photos:ph};
       });
     }},
     settingsIdx(){
@@ -780,10 +803,13 @@ Vue.createApp({
       return [...m.values()];
     },
     studentIdx(){const m=new Map();this.eStudents.forEach(x=>m.set(normKelas(x.name),x));return m},
-    vStudents(){return this.eStudents.filter(x=>x.ms.some(m=>(!this.batchPick.length||this.batchPick.includes(m.batch||''))&&(!this.ustadzPick.length||this.ustadzPick.includes(normKelas(m.kelas)))))},
+    fU(){return this.sesiMode?this.sU:this.ustadzPick},
+    fB(){return this.sesiMode?this.sB:this.batchPick},
+    fD(){return this.sesiMode?this.sD:this.pick},
+    vStudents(){return this.eStudents.filter(x=>x.ms.some(m=>(!this.fB.length||this.fB.includes(m.batch||''))&&(!this.fU.length||this.fU.includes(normKelas(m.kelas)))))},
     bRows(){
-      if(!this.batchPick.length&&!this.ustadzPick.length)return this.eRows;
-      return this.eRows.filter(r=>(!this.batchPick.length||this.batchPick.includes(r.batch||''))&&(!this.ustadzPick.length||this.ustadzPick.includes(normKelas(r.ustadz))));
+      if(!this.fB.length&&!this.fU.length)return this.eRows;
+      return this.eRows.filter(r=>(!this.fB.length||this.fB.includes(r.batch||''))&&(!this.fU.length||this.fU.includes(normKelas(r.ustadz))));
     },
     batchOpts(){
       const m=new Map();
@@ -810,7 +836,7 @@ Vue.createApp({
     dateShown(){const q=this.dateQ.trim().toLowerCase();return q?this.dateOpts.filter(o=>o.label.toLowerCase().includes(q)||o.key.includes(q)):this.dateOpts},
     dateBtnLabel(){const n=this.pick.length;return n?(n===1?this.filterLabel:n+' tanggal dipilih'):'Semua tanggal'},
     noDateCount(){return this.bRows.filter(r=>!dkey(r.tgl)).length},
-    shownRows(){return this.pick.length?this.bRows.filter(r=>this.pick.includes(dkey(r.tgl))):this.bRows},
+    shownRows(){return this.fD.length?this.bRows.filter(r=>this.fD.includes(dkey(r.tgl))):this.bRows},
     hadirCount(){return this.res.list.filter(x=>x.hadir).length},
     activeCount(){return this.res.list.filter(x=>x.log.length).length},
     tgt(){return buildTarget(this.targetMode==='all'?'all':this.juzSel)},
@@ -831,6 +857,22 @@ Vue.createApp({
       if(this.targetMode!=='settings'||this.settings.state!=='ok')return ()=>manual;
       return name=>{const m=this.memStu(name);return m?this.tgtFromMem(m,manual):manual};
     },
+    sesiAll(){
+      const l=this.dailyBuilder(this.eRows,this.eRows,true);
+      return l.sort((a,b)=>a.dk<b.dk?1:a.dk>b.dk?-1:(a.jam<b.jam?1:a.jam>b.jam?-1:(a.uk<b.uk?-1:1)));
+    },
+    sesiUOpts(){const m=new Map();this.sesiAll.forEach(p=>{if(!p.uk)return;const o=m.get(p.uk)||{key:p.uk,label:p.kelas,n:0};o.n++;m.set(p.uk,o)});const l=[...m.values()].sort((a,b)=>a.label.localeCompare(b.label));return l.length>=2?l:[]},
+    sesiBOpts(){const m=new Map();this.sesiAll.forEach(p=>{const k=p.batch||'';m.set(k,(m.get(k)||0)+1)});const l=[...m.entries()].map(([k,n])=>({key:k,label:k?'Batch '+k:'Tanpa batch',n})).sort((a,b)=>a.key===''?1:b.key===''?-1:a.key.localeCompare(b.key,undefined,{numeric:true}));return l.some(x=>x.key)?l:[]},
+    sesiDOpts(){const m=new Map();this.sesiAll.forEach(p=>{const o=m.get(p.dk)||{key:p.dk,label:p.dshort,n:0};o.n++;m.set(p.dk,o)});return [...m.values()].sort((a,b)=>a.key<b.key?1:-1)},
+    sesiDShown(){const q=this.sDateQ.trim().toLowerCase();return q?this.sesiDOpts.filter(o=>o.label.toLowerCase().includes(q)||o.key.includes(q)):this.sesiDOpts},
+    sesiDBtn(){const n=this.sD.length;return n?(n===1?(this.sesiDOpts.find(o=>o.key===this.sD[0])||{label:'1 tanggal'}).label:n+' tanggal dipilih'):'Semua tanggal'},
+    sesiActive(){return this.sU.length+this.sB.length+(this.sD.length?1:0)},
+    sesiFiltered(){return this.sesiAll.filter(p=>(!this.sU.length||this.sU.includes(p.uk))&&(!this.sB.length||this.sB.includes(p.batch||''))&&(!this.sD.length||this.sD.includes(p.dk)))},
+    sesiShown(){
+      let prev='';
+      return this.sesiFiltered.slice(0,this.sesiLimit).map(p=>{const first=p.dk!==prev;prev=p.dk;return {p,first}});
+    },
+    sesiKey(){return this.sU.join(',')+'|'+this.sB.join(',')+'|'+this.sD.join(',')},
     activeFilters(){return this.ustadzPick.length+this.batchPick.length+(this.pick.length?1:0)+(this.targetMode!=='settings'?1:0)},
     curName(){const l=this.stuRes.list;const x=l.find(y=>y.name===this.sel)||l[0];return x?x.name:''},
     curMs(){const x=this.studentIdx.get(normKelas(this.curName));return x?x.ms:[]},
@@ -925,6 +967,10 @@ Vue.createApp({
       return analyze(this.curRows,[x.name],this.stuTgtOf).list[0]||x;
     }
   },
+  watch:{
+    sesiKey(){this.sesiLimit=20;this.$nextTick(()=>this.observeSesi())},
+    sesiFiltered(){this.$nextTick(()=>this.observeSesi())}
+  },
   methods:{
     label,
     fd(d){return d instanceof Date&&!isNaN(d)?d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}):String(d||'-')},
@@ -951,6 +997,21 @@ Vue.createApp({
     openCombo(){if(!this.comboOpen){this.comboOpen=true;this.comboQ='';this.comboHi=Math.max(0,this.stuRes.list.findIndex(x=>this.cur&&x.name===this.cur.name))}},
     toggleCombo(){if(this.comboOpen)this.closeCombo();else{this.$refs.cin.focus();this.openCombo()}},
     closeCombo(){this.comboOpen=false;this.comboQ=''},
+    toggleS(arr,k){const a=this[arr];this[arr]=a.includes(k)?a.filter(x=>x!==k):[...a,k]},
+    openSesiPage(p){
+      this.sess=this.dailyBuilder(this.eRows,this.eRows,false,p.key)[0]||null;
+      this.sessStudent='';this.sessOpen=true;document.body.classList.add('sheetopen');
+      this.$nextTick(()=>{const b=document.querySelector('.sheet .sclose');if(b)b.focus()});
+    },
+    moreSesi(){
+      if(this.sesiLimit>=this.sesiFiltered.length)return;
+      this.sesiLimit+=20;this.$nextTick(()=>this.observeSesi());
+    },
+    observeSesi(){
+      if(!this._io&&'IntersectionObserver' in window)this._io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting))this.moreSesi()},{rootMargin:'500px 0px'});
+      const el=document.getElementById('sesi-end');
+      if(this._io){this._io.disconnect();if(el)this._io.observe(el)}
+    },
     memLap(name){
       const x=this.studentIdx.get(normKelas(name));if(!x)return null;
       const bp=this.batchPick,up=this.ustadzPick;
@@ -982,7 +1043,7 @@ Vue.createApp({
     },
     absText(x){const a=x.absen&&x.absen[0];return a?a.absen+(x.absen.length>1?' ('+x.absen.length+'x)':''):''},
     noLogText(x){return x.hadir?'Hadir, tanpa bacaan':(this.absText(x)||(this.pick.length?'Tidak ada setoran':'-'))},
-    setTab(t){this.tab=t;this.expKind='';this.comboOpen=false;this.dateOpen=false;window.scrollTo(0,0)},
+    setTab(t){this.tab=t;if(t==='sesi')this.$nextTick(()=>this.observeSesi());this.expKind='';this.comboOpen=false;this.dateOpen=false;this.sDateOpen=false;window.scrollTo(0,0)},
     emptyMsg(c){
       if(!c.hadir&&c.absen&&c.absen.length)return c.absen[0].absen+'. Belum ada setoran.';
       if(c.hadir)return 'Hadir, belum ada bacaan dalam target.';
@@ -1186,7 +1247,7 @@ Vue.createApp({
       if(!window.docx){this.err='Pustaka Word belum termuat (periksa koneksi internet), lalu muat ulang halaman.';return}
       this.busy=true;
       try{
-        const k=this.fileKey();let doc,name,ph=null;
+        const k=this.fkOver||this.fileKey();let doc,name,ph=null;
         if(kind==='summary'){doc=this.docSummary();name='ringkasan-progress-'+k+'.docx'}
         else if(kind==='detail'){doc=this.docStudent();name='progress-'+slug(this.cur.name)+'-'+slug(this.tgtKey)+(this.stuBatchPick.length?'-batch-'+slug(this.stuBatchPick.join('-')):'')+'.docx'}
         else{const r=await this.docDaily();doc=r.doc;name='laporan-harian-'+k+'.docx';ph=r}
@@ -1201,7 +1262,7 @@ Vue.createApp({
     async exportXlsx(kind){
       this.err='';
       try{
-        const k=slug(this.tgtKey)+(this.batchPick.length?'-batch-'+slug(this.batchPick.join('-')):'')+(this.pick.length?'-filter-tanggal':'');
+        const k=this.fkOver||slug(this.tgtKey)+(this.batchPick.length?'-batch-'+slug(this.batchPick.join('-')):'')+(this.pick.length?'-filter-tanggal':'');
         if(kind==='summary')await saveXlsx(this.wbSummary(),'ringkasan-progress-'+k+'.xlsx');
         else if(kind==='daily')await saveXlsx(this.wbDaily(),'laporan-harian-'+k+'.xlsx');
         else await saveXlsx(this.wbStudent(),'progress-'+slug(this.cur.name)+'-'+slug(this.tgtKey)+(this.stuBatchPick.length?'-batch-'+slug(this.stuBatchPick.join('-')):'')+'.xlsx');
@@ -1226,7 +1287,30 @@ Vue.createApp({
       document.body.classList.add('sheetopen');
       this.$nextTick(()=>{const b=document.querySelector('.sheet .sclose');if(b)b.focus()});
     },
-    closeSession(){this.sessOpen=false;document.body.classList.remove('sheetopen')},
+    async sessExport(fmt){
+      const p=this.sess;if(!p)return;
+      this.err='';this.note='';
+      this.onlyPages=[p];this.fkOver=slug(p.dk+'-'+(p.kelas||'kelas')+(p.jam?'-'+p.jam.replace(':','.'):''));
+      try{
+        await this.$nextTick();
+        if(fmt==='pdf')await this.doPrint('daily');
+        else if(fmt==='docx')await this.exportDocx('daily');
+        else await this.exportXlsx('daily');
+      }finally{this.onlyPages=null;this.fkOver=''}
+    },
+    async sesiExport(fmt){
+      const kind=this.sKind;if(!kind||!this.sesiFiltered.length)return;
+      this.err='';this.note='';
+      this.sesiMode=true;
+      this.fkOver='sesi-kelas'+(this.sB.length?'-batch-'+slug(this.sB.join('-')):'')+(this.sU.length?'-kelas-'+slug(this.sU.join('-')):'')+(this.sD.length?'-filter-tanggal':'');
+      try{
+        await this.$nextTick();
+        if(fmt==='pdf')await this.doPrint(kind);
+        else if(fmt==='docx')await this.exportDocx(kind);
+        else await this.exportXlsx(kind);
+      }finally{this.sesiMode=false;this.fkOver=''}
+    },
+    closeSession(){this.sessOpen=false;this.sessMenu=false;document.body.classList.remove('sheetopen')},
     ini(n){const p=String(n||'').trim().split(/\s+/);return ((p[0]||'')[0]||'').toUpperCase()+((p.length>1?p[p.length-1][0]:'')||'').toUpperCase()},
     avColor(n){const cs=['#00a884','#53bdeb','#ffb02e','#e26ab6','#7f66ff','#ff7a5c','#06cf9c','#a5b337'];let h=0;for(const c of String(n))h=(h*31+c.charCodeAt(0))>>>0;return cs[h%cs.length]},
     onFile(e){this.load(e.target.files[0]);e.target.value=''},
@@ -1376,6 +1460,76 @@ Vue.createApp({
     </figure>
   </section>
 
+  </template>
+  <template v-if="tab==='sesi'">
+  <details class="dbox" open>
+    <summary>Filter Sesi Kelas<span class="fbadge" v-if="sesiActive">{{sesiActive}} filter aktif</span></summary>
+    <div class="dbody">
+      <div class="filterbar" v-if="sesiUOpts.length">
+        <div class="fhead"><b>Filter Kelas (Ustadz)</b><button class="btn small" v-if="sU.length" @click="sU=[]">Hapus filter</button></div>
+        <div class="chips"><button v-for="o in sesiUOpts" :key="o.key" class="chip" :class="{on:sU.includes(o.key)}" :aria-pressed="sU.includes(o.key)" @click="toggleS('sU',o.key)">{{o.label}} <small>({{o.n}} sesi)</small></button></div>
+        <p class="mute" v-if="!sU.length">Semua kelas ditampilkan. Pilih satu atau beberapa kelas untuk menyaring sesi.</p>
+      </div>
+      <div class="filterbar" v-if="sesiBOpts.length">
+        <div class="fhead"><b>Filter batch</b><button class="btn small" v-if="sB.length" @click="sB=[]">Hapus filter</button></div>
+        <div class="chips"><button v-for="o in sesiBOpts" :key="o.key" class="chip" :class="{on:sB.includes(o.key)}" :aria-pressed="sB.includes(o.key)" @click="toggleS('sB',o.key)">{{o.label}} <small>({{o.n}} sesi)</small></button></div>
+        <p class="mute" v-if="!sB.length">Semua batch ditampilkan. Pilih satu atau beberapa batch untuk menyaring sesi.</p>
+      </div>
+      <div class="filterbar" v-if="sesiDOpts.length">
+        <div class="fhead"><b>Filter tanggal</b><button class="btn small" v-if="sD.length" @click="sD=[]">Hapus filter</button></div>
+        <div class="dmulti">
+          <button type="button" class="dbtn" :aria-expanded="sDateOpen" aria-haspopup="listbox" @click="sDateOpen=!sDateOpen"><span>{{sesiDBtn}}</span><small class="mute">{{sesiDOpts.length}} tanggal</small><span aria-hidden="true">&#9662;</span></button>
+          <div class="dpanel" v-if="sDateOpen" role="group" aria-label="Pilih tanggal sesi">
+            <input type="text" class="dsearch" v-model="sDateQ" placeholder="Cari tanggal, mis. Okt 2026..." aria-label="Cari tanggal">
+            <ul class="dlist">
+              <li v-for="o in sesiDShown" :key="o.key" :class="{on:sD.includes(o.key)}"><label><input type="checkbox" :checked="sD.includes(o.key)" @change="toggleS('sD',o.key)"><span class="dl">{{o.label}}</span><small class="mute">{{o.n}} sesi</small></label></li>
+              <li v-if="!sesiDShown.length" class="dnone">Tidak ada tanggal yang cocok.</li>
+            </ul>
+            <div class="dfoot"><button type="button" class="btn small" :disabled="!sD.length" @click="sD=[]">Hapus filter</button><span class="mute">Hanya tanggal yang ada sesi kelas. Terbaru di atas.</span><button type="button" class="btn small primary" @click="sDateOpen=false">Selesai</button></div>
+          </div>
+        </div>
+        <p class="mute" v-if="!sD.length">Pilih satu atau beberapa tanggal untuk melihat sesi pada tanggal itu.</p>
+      </div>
+    </div>
+  </details>
+  <details class="dbox printbox" open>
+    <summary>Cetak &amp; Unduh<span class="fbadge" v-if="sesiActive">{{sesiActive}} filter aktif</span></summary>
+    <div class="dbody">
+      <p class="mute">Laporan mengikuti filter di tab Sesi Kelas ini ({{sesiFiltered.length}} sesi).</p>
+      <div class="subhead">Laporan</div>
+      <div class="kindrow" role="group" aria-label="Pilih laporan">
+        <button class="btn kbtn" :class="{sel:sKind==='summary'}" :aria-pressed="sKind==='summary'" :disabled="!sesiFiltered.length" @click="sKind=sKind==='summary'?'':'summary'">Ringkasan semua</button>
+        <button class="btn kbtn" :class="{sel:sKind==='daily'}" :aria-pressed="sKind==='daily'" :disabled="!sesiFiltered.length" @click="sKind=sKind==='daily'?'':'daily'">Ringkasan per hari</button>
+      </div>
+      <div class="fmtrow" v-if="sKind">
+        <span class="alabel">Pilih format:</span>
+        <button class="btn" @click="sesiExport('pdf')" title="Buka dialog cetak; simpan sebagai PDF">PDF (Cetak)</button>
+        <button class="btn" :disabled="busy" @click="sesiExport('docx')">Word (.docx)</button>
+        <button class="btn" @click="sesiExport('xlsx')">Excel (.xlsx)</button>
+      </div>
+      <p class="mute" v-else>Pilih laporan, lalu pilih format PDF, Word, atau Excel.</p>
+      <p class="mute" v-if="err||note" :style="err?'color:#c0392b':''">{{err||note}}</p>
+    </div>
+  </details>
+  <p class="mute sesicount">{{sesiFiltered.length}} dari {{sesiAll.length}} sesi kelas, terbaru di atas.</p>
+  <div v-if="!sesiAll.length" class="msg empty">Belum ada sesi kelas.</div>
+  <div class="sesilist" v-else>
+    <template v-for="it in sesiShown" :key="it.p.key">
+      <div class="datepill" v-if="it.first">{{it.p.dateLong}}</div>
+      <button type="button" class="sesirow" @click="openSesiPage(it.p)">
+        <i class="av" :style="{background:avColor(it.p.kelas||'x')}">{{ini(it.p.kelas||'S')}}</i>
+        <span class="sbody">
+          <b>{{it.p.kelas||'Kelas'}}<span v-if="it.p.batch" class="mute"> &middot; Batch {{it.p.batch}}</span></b>
+          <small class="mute">{{it.p.jam?'Jam '+it.p.jam:'Jam -'}} &middot; {{it.p.lokasi||'Lokasi -'}}</small>
+        </span>
+        <span class="sright"><b>{{it.p.nMurid}} murid</b><small class="mute">{{it.p.nBaca}} membaca</small></span>
+      </button>
+    </template>
+    <div id="sesi-end" class="sesiend" aria-hidden="true"></div>
+    <p class="mute sesimore" v-if="sesiLimit<sesiFiltered.length">Memuat sesi lainnya...</p>
+    <p class="mute sesimore" v-else-if="sesiFiltered.length">Semua sesi sudah ditampilkan.</p>
+    <p class="msg empty" v-if="!sesiFiltered.length">Tidak ada sesi yang cocok dengan filter.</p>
+  </div>
   </template>
   <template v-if="tab==='murid'">
   <div class="studentbar" v-if="stuRes.list.length">
@@ -1583,6 +1737,19 @@ Vue.createApp({
   <div class="sheetwrap noprint" v-if="sessOpen" @click.self="closeSession">
     <div class="sheet" role="dialog" aria-modal="true" aria-label="Sesi kelas">
       <div class="sheethead"><button class="sclose" aria-label="Tutup" @click="closeSession">&#10005;</button><b>Sesi Kelas</b><small>{{sess?sess.sub:''}}</small></div>
+      <div class="sessfmt" v-if="sess">
+        <div class="printmenu">
+          <button type="button" class="btn printbtn" :aria-expanded="sessMenu" aria-haspopup="menu" @click="sessMenu=!sessMenu">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M19 8H5a3 3 0 0 0-3 3v6h4v4h12v-4h4v-6a3 3 0 0 0-3-3zm-3 11H8v-5h8v5zm3-7a1 1 0 1 1 0-2 1 1 0 0 1 0 2zM18 3H6v4h12V3z"/></svg><span>Print</span>
+          </button>
+          <div class="pmenu" role="menu" v-if="sessMenu">
+            <button type="button" role="menuitem" @click="sessMenu=false;sessExport('pdf')">PDF (Cetak)</button>
+            <button type="button" role="menuitem" :disabled="busy" @click="sessMenu=false;sessExport('docx')">Word (.docx)</button>
+            <button type="button" role="menuitem" @click="sessMenu=false;sessExport('xlsx')">Excel (.xlsx)</button>
+          </div>
+        </div>
+      </div>
+      <p class="mute sessmsg" v-if="err||note" :style="err?'color:#c0392b':''">{{err||note}}</p>
       <article class="day sheetday" v-if="sess">
         <h1>Laporan Harian{{sess.kelas?' Kelas '+sess.kelas:''}}</h1>
         <p class="daydate"><b>{{sess.sub}}</b></p>
@@ -1621,6 +1788,9 @@ Vue.createApp({
   <nav class="tabbar noprint" v-if="!booting" aria-label="Navigasi">
     <button type="button" class="tab" :class="{on:tab==='laporan'}" :aria-current="tab==='laporan'?'page':null" @click="setTab('laporan')">
       <span class="tic"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm1 11v4h2v-4H6zm4-5v9h2V9h-2zm4 3v6h2v-6h-2z"/></svg></span><span class="tl">Laporan</span>
+    </button>
+    <button type="button" class="tab" :class="{on:tab==='sesi'}" :aria-current="tab==='sesi'?'page':null" @click="setTab('sesi')">
+      <span class="tic"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M7 2v2H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7zm-2 8h14v9H5v-9zm2 2v2h2v-2H7zm4 0v2h2v-2h-2z"/></svg></span><span class="tl">Sesi Kelas</span>
     </button>
     <button type="button" class="tab" :class="{on:tab==='murid'}" :aria-current="tab==='murid'?'page':null" @click="setTab('murid')">
       <span class="tic"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path fill="currentColor" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-3.3 0-8 1.7-8 5v1h16v-1c0-3.3-4.7-5-8-5z"/></svg></span><span class="tl">Murid</span>
