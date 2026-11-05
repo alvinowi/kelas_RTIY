@@ -244,6 +244,15 @@ section>h2,.cmp>h2{display:table;margin:22px auto 12px;background:#fff;color:#54
 .btn:disabled{color:#8696a0;background:#f0f2f5}
 .stat,.filterbar,.targetbar,.dbox,.chart,.srcbar{border:0;border-radius:12px;box-shadow:0 1px .5px rgba(11,20,26,.13)}
 .tablewrap{border:0;border-radius:12px;box-shadow:0 1px .5px rgba(11,20,26,.13)}
+.sheetday .tablewrap,.rkdet .tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.sheetday .daytable,.sheetday .sumtable{table-layout:auto;width:100%;min-width:640px}
+.sheetday .daytable th,.sheetday .sumtable th,.rksess th{white-space:nowrap}
+.sheetday .daytable td,.sheetday .sumtable td{overflow-wrap:normal;word-break:normal}
+.sheetday .daytable td:nth-child(2){min-width:150px}
+.sheetday .daytable td:nth-child(5){min-width:200px}
+.sheetday .sumtable td:first-child{min-width:150px}
+.sheetday .pbar .bar{min-width:60px}
+.rksess{min-width:520px}
 .stat .big{color:#008069;font-weight:600}
 .filterbar>.fhead b,.targetbar>label b,.dbox>summary{color:#008069;font-size:14px;font-weight:600}
 .dbox>summary::before{color:#8696a0}
