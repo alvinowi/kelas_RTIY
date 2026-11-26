@@ -558,7 +558,7 @@ function readRows(buf){
   const ws=wb.Sheets['log_bacaan_quran'];
   if(!ws)throw new Error('Sheet "log_bacaan_quran" tidak ditemukan. Sheet yang ada: '+wb.SheetNames.join(', ')+'.');
   const g=(o,k)=>{const key=Object.keys(o).find(x=>x.trim().toLowerCase()===k);return key?o[key]:''};
-  return XLSX.utils.sheet_to_json(ws,{defval:''}).map((o,i)=>({ln:i+2,batch:String(g(o,'batch')==null?'':g(o,'batch')).trim(),ustadz:String(g(o,'ustadz')||'').trim(),tgl:toDate(g(o,'tgl')),murid:g(o,'murid'),lokasi:g(o,'lokasi'),jam:jamNorm(g(o,'jam')),jenis:g(o,'jenis kegiatan'),sm:g(o,'surat mulai'),am:g(o,'ayat mulai'),ss:g(o,'surat selesai'),ae:g(o,'ayat selesai'),nilai:g(o,'nilai')}))
+  return XLSX.utils.sheet_to_json(ws,{defval:''}).map((o,i)=>({ln:i+2,batch:String(g(o,'batch')==null?'':g(o,'batch')).trim(),ustadz:String(g(o,'ustadz')||'').trim(),tgl:toDate(g(o,'tgl')),murid:g(o,'murid'),lokasi:g(o,'lokasi'),jam:jamNorm(g(o,'jam')),jenis:String(g(o,'jenis kegiatan')||'').replace(/\btalaqi\b/gi,m=>m[0]+'alaqqi'),sm:g(o,'surat mulai'),am:g(o,'ayat mulai'),ss:g(o,'surat selesai'),ae:g(o,'ayat selesai'),nilai:g(o,'nilai')}))
    .filter(r=>String(r.murid).trim());
 }
 
